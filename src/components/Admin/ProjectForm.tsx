@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -42,7 +42,13 @@ const ProjectForm = ({ project, onSubmit, onCancel }: ProjectFormProps) => {
 
   const [newTag, setNewTag] = useState("");
   const [newMaterial, setNewMaterial] = useState("");
-  const [newImageUrl, setNewImageUrl] = useState("");
+  const fileInputRefs = {
+    beforeImage1: useRef<HTMLInputElement>(null),
+    afterImage1: useRef<HTMLInputElement>(null),
+    beforeImage2: useRef<HTMLInputElement>(null),
+    afterImage2: useRef<HTMLInputElement>(null),
+    additional: useRef<HTMLInputElement>(null),
+  };
 
   useEffect(() => {
     if (project) {
@@ -104,16 +110,40 @@ const ProjectForm = ({ project, onSubmit, onCancel }: ProjectFormProps) => {
     }));
   };
 
-  const handleAddImage = () => {
-    if (
-      newImageUrl.trim() &&
-      !formData.additionalImages.includes(newImageUrl.trim())
-    ) {
+  // Convert file to base64
+  const convertToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  // Handle single image upload
+  const handleImageUpload = async (field: string, file: File) => {
+    try {
+      const base64 = await convertToBase64(file);
+      setFormData((prev) => ({ ...prev, [field]: base64 }));
+    } catch (error) {
+      console.error("Error converting image to base64:", error);
+      alert("Error uploading image. Please try again.");
+    }
+  };
+
+  // Handle additional images upload
+  const handleAdditionalImagesUpload = async (files: FileList) => {
+    try {
+      const base64Images = await Promise.all(
+        Array.from(files).map((file) => convertToBase64(file)),
+      );
       setFormData((prev) => ({
         ...prev,
-        additionalImages: [...prev.additionalImages, newImageUrl.trim()],
+        additionalImages: [...prev.additionalImages, ...base64Images],
       }));
-      setNewImageUrl("");
+    } catch (error) {
+      console.error("Error converting images to base64:", error);
+      alert("Error uploading images. Please try again.");
     }
   };
 
@@ -279,44 +309,90 @@ const ProjectForm = ({ project, onSubmit, onCancel }: ProjectFormProps) => {
             <h4 className="font-medium mb-3">Slider Set 1</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="beforeImage1">Before Image 1 URL *</Label>
-                <Input
-                  id="beforeImage1"
-                  value={formData.beforeImage1}
-                  onChange={(e) =>
-                    handleInputChange("beforeImage1", e.target.value)
-                  }
-                  placeholder="https://example.com/before1.jpg"
-                  required
-                />
+                <Label htmlFor="beforeImage1">Before Image 1 *</Label>
+                <div className="space-y-2">
+                  <input
+                    ref={fileInputRefs.beforeImage1}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleImageUpload("beforeImage1", file);
+                    }}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRefs.beforeImage1.current?.click()}
+                    className="w-full"
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    Upload Before Image 1
+                  </Button>
+                </div>
                 {formData.beforeImage1 && (
-                  <div className="mt-2">
+                  <div className="mt-2 relative">
                     <img
                       src={formData.beforeImage1}
                       alt="Before 1 preview"
                       className="w-full h-32 object-cover rounded"
                     />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      onClick={() =>
+                        setFormData((prev) => ({ ...prev, beforeImage1: "" }))
+                      }
+                      className="absolute top-1 right-1 h-6 w-6 p-0"
+                    >
+                      <X size={12} />
+                    </Button>
                   </div>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="afterImage1">After Image 1 URL *</Label>
-                <Input
-                  id="afterImage1"
-                  value={formData.afterImage1}
-                  onChange={(e) =>
-                    handleInputChange("afterImage1", e.target.value)
-                  }
-                  placeholder="https://example.com/after1.jpg"
-                  required
-                />
+                <Label htmlFor="afterImage1">After Image 1 *</Label>
+                <div className="space-y-2">
+                  <input
+                    ref={fileInputRefs.afterImage1}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleImageUpload("afterImage1", file);
+                    }}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRefs.afterImage1.current?.click()}
+                    className="w-full"
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    Upload After Image 1
+                  </Button>
+                </div>
                 {formData.afterImage1 && (
-                  <div className="mt-2">
+                  <div className="mt-2 relative">
                     <img
                       src={formData.afterImage1}
                       alt="After 1 preview"
                       className="w-full h-32 object-cover rounded"
                     />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      onClick={() =>
+                        setFormData((prev) => ({ ...prev, afterImage1: "" }))
+                      }
+                      className="absolute top-1 right-1 h-6 w-6 p-0"
+                    >
+                      <X size={12} />
+                    </Button>
                   </div>
                 )}
               </div>
@@ -330,42 +406,90 @@ const ProjectForm = ({ project, onSubmit, onCancel }: ProjectFormProps) => {
             <h4 className="font-medium mb-3">Slider Set 2</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="beforeImage2">Before Image 2 URL</Label>
-                <Input
-                  id="beforeImage2"
-                  value={formData.beforeImage2}
-                  onChange={(e) =>
-                    handleInputChange("beforeImage2", e.target.value)
-                  }
-                  placeholder="https://example.com/before2.jpg"
-                />
+                <Label htmlFor="beforeImage2">Before Image 2</Label>
+                <div className="space-y-2">
+                  <input
+                    ref={fileInputRefs.beforeImage2}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleImageUpload("beforeImage2", file);
+                    }}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRefs.beforeImage2.current?.click()}
+                    className="w-full"
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    Upload Before Image 2
+                  </Button>
+                </div>
                 {formData.beforeImage2 && (
-                  <div className="mt-2">
+                  <div className="mt-2 relative">
                     <img
                       src={formData.beforeImage2}
                       alt="Before 2 preview"
                       className="w-full h-32 object-cover rounded"
                     />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      onClick={() =>
+                        setFormData((prev) => ({ ...prev, beforeImage2: "" }))
+                      }
+                      className="absolute top-1 right-1 h-6 w-6 p-0"
+                    >
+                      <X size={12} />
+                    </Button>
                   </div>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="afterImage2">After Image 2 URL</Label>
-                <Input
-                  id="afterImage2"
-                  value={formData.afterImage2}
-                  onChange={(e) =>
-                    handleInputChange("afterImage2", e.target.value)
-                  }
-                  placeholder="https://example.com/after2.jpg"
-                />
+                <Label htmlFor="afterImage2">After Image 2</Label>
+                <div className="space-y-2">
+                  <input
+                    ref={fileInputRefs.afterImage2}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleImageUpload("afterImage2", file);
+                    }}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRefs.afterImage2.current?.click()}
+                    className="w-full"
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    Upload After Image 2
+                  </Button>
+                </div>
                 {formData.afterImage2 && (
-                  <div className="mt-2">
+                  <div className="mt-2 relative">
                     <img
                       src={formData.afterImage2}
                       alt="After 2 preview"
                       className="w-full h-32 object-cover rounded"
                     />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      onClick={() =>
+                        setFormData((prev) => ({ ...prev, afterImage2: "" }))
+                      }
+                      className="absolute top-1 right-1 h-6 w-6 p-0"
+                    >
+                      <X size={12} />
+                    </Button>
                   </div>
                 )}
               </div>
@@ -380,17 +504,30 @@ const ProjectForm = ({ project, onSubmit, onCancel }: ProjectFormProps) => {
           <CardTitle>Additional Project Photos</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex gap-2">
-            <Input
-              value={newImageUrl}
-              onChange={(e) => setNewImageUrl(e.target.value)}
-              placeholder="Add image URL"
-              onKeyPress={(e) =>
-                e.key === "Enter" && (e.preventDefault(), handleAddImage())
-              }
+          <div className="space-y-2">
+            <input
+              ref={fileInputRefs.additional}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(e) => {
+                const files = e.target.files;
+                if (files && files.length > 0) {
+                  handleAdditionalImagesUpload(files);
+                  // Reset the input so the same files can be selected again if needed
+                  e.target.value = "";
+                }
+              }}
+              className="hidden"
             />
-            <Button type="button" onClick={handleAddImage} variant="outline">
-              <Plus size={16} />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => fileInputRefs.additional.current?.click()}
+              className="w-full"
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              Upload Additional Images
             </Button>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -458,7 +595,10 @@ const ProjectForm = ({ project, onSubmit, onCancel }: ProjectFormProps) => {
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit">
+        <Button
+          type="submit"
+          disabled={!formData.beforeImage1 || !formData.afterImage1}
+        >
           {project ? "Update Project" : "Create Project"}
         </Button>
       </div>

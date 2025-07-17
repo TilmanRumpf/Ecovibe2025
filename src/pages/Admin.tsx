@@ -4,8 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, ArrowLeft, Edit, Trash2, Save, X } from "lucide-react";
+import { Plus, ArrowLeft, Edit, Trash2, Save, X, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import ProjectForm from "@/components/Admin/ProjectForm";
 import ProjectList from "@/components/Admin/ProjectList";
 import {
@@ -16,6 +17,7 @@ import {
 } from "@/contexts/ProjectContext";
 
 const Admin = () => {
+  const { logout } = useAuth();
   const {
     projects,
     categories,
@@ -168,15 +170,25 @@ const Admin = () => {
               EcoVibe Administration
             </h1>
           </div>
-          {!showForm && (
+          <div className="flex items-center gap-3">
+            {!showForm && (
+              <Button
+                onClick={() => setShowForm(true)}
+                className="flex items-center gap-2"
+              >
+                <Plus size={16} />
+                New Project
+              </Button>
+            )}
             <Button
-              onClick={() => setShowForm(true)}
-              className="flex items-center gap-2"
+              onClick={logout}
+              variant="outline"
+              className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
             >
-              <Plus size={16} />
-              New Project
+              <LogOut size={16} />
+              Logout
             </Button>
-          )}
+          </div>
         </div>
 
         {/* Category and Project Type Management Section */}
