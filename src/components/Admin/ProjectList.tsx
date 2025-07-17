@@ -24,7 +24,7 @@ import { useProjects } from "@/contexts/ProjectContext";
 interface ProjectListProps {
   projects: Project[];
   onEdit: (project: Project) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: string) => Promise<void>;
 }
 
 const ProjectList = ({ projects, onEdit, onDelete }: ProjectListProps) => {
@@ -32,6 +32,8 @@ const ProjectList = ({ projects, onEdit, onDelete }: ProjectListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [sortBy, setSortBy] = useState("updatedAt");
+
+  console.log("ProjectList received projects:", projects.length, projects);
 
   const categories = [
     { value: "all", label: "All Categories" },
@@ -75,13 +77,13 @@ const ProjectList = ({ projects, onEdit, onDelete }: ProjectListProps) => {
       }
     });
 
-  const handleDelete = (project: Project) => {
+  const handleDelete = async (project: Project) => {
     if (
       window.confirm(
         `Are you sure you want to delete "${project.title}"? This action cannot be undone.`,
       )
     ) {
-      onDelete(project.id);
+      await onDelete(project.id);
     }
   };
 

@@ -4,7 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, ArrowLeft, Edit, Trash2, Save, X, LogOut } from "lucide-react";
+import {
+  Plus,
+  ArrowLeft,
+  Edit,
+  Trash2,
+  Save,
+  X,
+  LogOut,
+  UserPlus,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import ProjectForm from "@/components/Admin/ProjectForm";
@@ -17,7 +26,7 @@ import {
 } from "@/contexts/ProjectContext";
 
 const Admin = () => {
-  const { logout } = useAuth();
+  const { logout, createAdminUser } = useAuth();
   const {
     projects,
     categories,
@@ -46,24 +55,49 @@ const Admin = () => {
   const [newProjectTypeValue, setNewProjectTypeValue] = useState("");
   const [newProjectTypeLabel, setNewProjectTypeLabel] = useState("");
 
-  const handleCreateProject = (
+  // User management state
+  const [newUserEmail, setNewUserEmail] = useState("");
+  const [newUserPassword, setNewUserPassword] = useState("");
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
+  const [userCreationMessage, setUserCreationMessage] = useState("");
+
+  const handleCreateProject = async (
     projectData: Omit<Project, "id" | "createdAt" | "updatedAt">,
   ) => {
-    addProject(projectData);
-    setShowForm(false);
+    try {
+      console.log("Creating project with data:", projectData);
+      await addProject(projectData);
+      setShowForm(false);
+      console.log("Project created successfully");
+    } catch (error) {
+      console.error("Failed to create project:", error);
+      alert("Failed to create project. Please try again.");
+    }
   };
 
-  const handleUpdateProject = (
+  const handleUpdateProject = async (
     projectData: Omit<Project, "id" | "createdAt" | "updatedAt">,
   ) => {
     if (!editingProject) return;
-    updateProject(editingProject.id, projectData);
-    setEditingProject(null);
-    setShowForm(false);
+    try {
+      await updateProject(editingProject.id, projectData);
+      setEditingProject(null);
+      setShowForm(false);
+      console.log("Project updated successfully");
+    } catch (error) {
+      console.error("Failed to update project:", error);
+      alert("Failed to update project. Please try again.");
+    }
   };
 
-  const handleDeleteProject = (id: string) => {
-    deleteProject(id);
+  const handleDeleteProject = async (id: string) => {
+    try {
+      await deleteProject(id);
+      console.log("Project deleted successfully");
+    } catch (error) {
+      console.error("Failed to delete project:", error);
+      alert("Failed to delete project. Please try again.");
+    }
   };
 
   const handleEditProject = (project: Project) => {
@@ -77,26 +111,36 @@ const Admin = () => {
   };
 
   // Category management functions
-  const handleAddCategory = () => {
+  const handleAddCategory = async () => {
     if (newCategoryValue.trim() && newCategoryLabel.trim()) {
-      addCategory({
-        value: newCategoryValue.trim(),
-        label: newCategoryLabel.trim(),
-      });
-      setNewCategoryValue("");
-      setNewCategoryLabel("");
+      try {
+        await addCategory({
+          value: newCategoryValue.trim(),
+          label: newCategoryLabel.trim(),
+        });
+        setNewCategoryValue("");
+        setNewCategoryLabel("");
+      } catch (error) {
+        console.error("Failed to add category:", error);
+        alert("Failed to add category. Please try again.");
+      }
     }
   };
 
-  const handleUpdateCategory = () => {
+  const handleUpdateCategory = async () => {
     if (editingCategory && newCategoryValue.trim() && newCategoryLabel.trim()) {
-      updateCategory(editingCategory.id, {
-        value: newCategoryValue.trim(),
-        label: newCategoryLabel.trim(),
-      });
-      setEditingCategory(null);
-      setNewCategoryValue("");
-      setNewCategoryLabel("");
+      try {
+        await updateCategory(editingCategory.id, {
+          value: newCategoryValue.trim(),
+          label: newCategoryLabel.trim(),
+        });
+        setEditingCategory(null);
+        setNewCategoryValue("");
+        setNewCategoryLabel("");
+      } catch (error) {
+        console.error("Failed to update category:", error);
+        alert("Failed to update category. Please try again.");
+      }
     }
   };
 
@@ -113,30 +157,40 @@ const Admin = () => {
   };
 
   // Project type management functions
-  const handleAddProjectType = () => {
+  const handleAddProjectType = async () => {
     if (newProjectTypeValue.trim() && newProjectTypeLabel.trim()) {
-      addProjectType({
-        value: newProjectTypeValue.trim(),
-        label: newProjectTypeLabel.trim(),
-      });
-      setNewProjectTypeValue("");
-      setNewProjectTypeLabel("");
+      try {
+        await addProjectType({
+          value: newProjectTypeValue.trim(),
+          label: newProjectTypeLabel.trim(),
+        });
+        setNewProjectTypeValue("");
+        setNewProjectTypeLabel("");
+      } catch (error) {
+        console.error("Failed to add project type:", error);
+        alert("Failed to add project type. Please try again.");
+      }
     }
   };
 
-  const handleUpdateProjectType = () => {
+  const handleUpdateProjectType = async () => {
     if (
       editingProjectType &&
       newProjectTypeValue.trim() &&
       newProjectTypeLabel.trim()
     ) {
-      updateProjectType(editingProjectType.id, {
-        value: newProjectTypeValue.trim(),
-        label: newProjectTypeLabel.trim(),
-      });
-      setEditingProjectType(null);
-      setNewProjectTypeValue("");
-      setNewProjectTypeLabel("");
+      try {
+        await updateProjectType(editingProjectType.id, {
+          value: newProjectTypeValue.trim(),
+          label: newProjectTypeLabel.trim(),
+        });
+        setEditingProjectType(null);
+        setNewProjectTypeValue("");
+        setNewProjectTypeLabel("");
+      } catch (error) {
+        console.error("Failed to update project type:", error);
+        alert("Failed to update project type. Please try again.");
+      }
     }
   };
 
@@ -150,6 +204,34 @@ const Admin = () => {
     setEditingProjectType(null);
     setNewProjectTypeValue("");
     setNewProjectTypeLabel("");
+  };
+
+  // User management functions
+  const handleCreateAdminUser = async () => {
+    if (!newUserEmail.trim() || !newUserPassword.trim()) {
+      setUserCreationMessage("Please enter both email and password.");
+      return;
+    }
+
+    setIsCreatingUser(true);
+    setUserCreationMessage("");
+
+    const result = await createAdminUser(
+      newUserEmail.trim(),
+      newUserPassword.trim(),
+    );
+
+    if (result.success) {
+      setUserCreationMessage(
+        `Administrator account created successfully for ${newUserEmail}`,
+      );
+      setNewUserEmail("");
+      setNewUserPassword("");
+    } else {
+      setUserCreationMessage(`Error: ${result.error}`);
+    }
+
+    setIsCreatingUser(false);
   };
 
   return (
@@ -268,7 +350,19 @@ const Admin = () => {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => deleteCategory(category.id)}
+                          onClick={async () => {
+                            try {
+                              await deleteCategory(category.id);
+                            } catch (error) {
+                              console.error(
+                                "Failed to delete category:",
+                                error,
+                              );
+                              alert(
+                                "Failed to delete category. Please try again.",
+                              );
+                            }
+                          }}
                           className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                         >
                           <Trash2 size={12} />
@@ -360,7 +454,19 @@ const Admin = () => {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => deleteProjectType(projectType.id)}
+                          onClick={async () => {
+                            try {
+                              await deleteProjectType(projectType.id);
+                            } catch (error) {
+                              console.error(
+                                "Failed to delete project type:",
+                                error,
+                              );
+                              alert(
+                                "Failed to delete project type. Please try again.",
+                              );
+                            }
+                          }}
                           className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                         >
                           <Trash2 size={12} />
@@ -397,6 +503,7 @@ const Admin = () => {
               <TabsTrigger value="projects">
                 All Projects ({projects.length})
               </TabsTrigger>
+              <TabsTrigger value="users">User Management</TabsTrigger>
               <TabsTrigger value="analytics">Analytics</TabsTrigger>
             </TabsList>
 
@@ -406,6 +513,91 @@ const Admin = () => {
                 onEdit={handleEditProject}
                 onDelete={handleDeleteProject}
               />
+            </TabsContent>
+
+            <TabsContent value="users">
+              <Card className="bg-white">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <UserPlus size={20} />
+                    Create Administrator Account
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="userEmail">Email Address</Label>
+                      <Input
+                        id="userEmail"
+                        type="email"
+                        placeholder="admin@example.com"
+                        value={newUserEmail}
+                        onChange={(e) => setNewUserEmail(e.target.value)}
+                        disabled={isCreatingUser}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="userPassword">Password</Label>
+                      <Input
+                        id="userPassword"
+                        type="password"
+                        placeholder="Enter secure password"
+                        value={newUserPassword}
+                        onChange={(e) => setNewUserPassword(e.target.value)}
+                        disabled={isCreatingUser}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleCreateAdminUser}
+                      disabled={
+                        isCreatingUser ||
+                        !newUserEmail.trim() ||
+                        !newUserPassword.trim()
+                      }
+                      className="flex items-center gap-2"
+                    >
+                      {isCreatingUser ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                      ) : (
+                        <UserPlus size={16} />
+                      )}
+                      {isCreatingUser ? "Creating..." : "Create Administrator"}
+                    </Button>
+                  </div>
+                  {userCreationMessage && (
+                    <div
+                      className={`p-3 rounded-md text-sm ${
+                        userCreationMessage.includes("Error")
+                          ? "bg-red-50 text-red-700 border border-red-200"
+                          : "bg-green-50 text-green-700 border border-green-200"
+                      }`}
+                    >
+                      {userCreationMessage}
+                    </div>
+                  )}
+                  <div className="bg-blue-50 p-4 rounded-md">
+                    <h4 className="font-medium text-blue-900 mb-2">
+                      Quick Create
+                    </h4>
+                    <p className="text-sm text-blue-700 mb-3">
+                      Create the requested administrator account:
+                    </p>
+                    <Button
+                      onClick={() => {
+                        setNewUserEmail("tilman.rumpf@gmail.com");
+                        setNewUserPassword("TempPassword123!");
+                      }}
+                      variant="outline"
+                      size="sm"
+                      disabled={isCreatingUser}
+                    >
+                      Fill tilman.rumpf@gmail.com
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="analytics">

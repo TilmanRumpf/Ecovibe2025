@@ -158,6 +158,7 @@ const ProjectForm = ({ project, onSubmit, onCancel }: ProjectFormProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("🚀 Submitting project with materials:", formData.materials);
     onSubmit(formData);
   };
 

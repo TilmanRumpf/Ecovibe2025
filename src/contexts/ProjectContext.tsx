@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { supabase } from "@/lib/supabase";
 
 export interface Project {
   id: string;
@@ -37,27 +44,30 @@ interface ProjectContextType {
   projects: Project[];
   categories: Category[];
   projectTypes: ProjectType[];
+  loading: boolean;
   addProject: (
     project: Omit<Project, "id" | "createdAt" | "updatedAt">,
-  ) => void;
+  ) => Promise<void>;
   updateProject: (
     id: string,
     project: Omit<Project, "id" | "createdAt" | "updatedAt">,
-  ) => void;
-  deleteProject: (id: string) => void;
+  ) => Promise<void>;
+  deleteProject: (id: string) => Promise<void>;
   getProject: (id: string) => Project | undefined;
-  addCategory: (category: Omit<Category, "id" | "createdAt">) => void;
+  addCategory: (category: Omit<Category, "id" | "createdAt">) => Promise<void>;
   updateCategory: (
     id: string,
     category: Omit<Category, "id" | "createdAt">,
-  ) => void;
-  deleteCategory: (id: string) => void;
-  addProjectType: (projectType: Omit<ProjectType, "id" | "createdAt">) => void;
+  ) => Promise<void>;
+  deleteCategory: (id: string) => Promise<void>;
+  addProjectType: (
+    projectType: Omit<ProjectType, "id" | "createdAt">,
+  ) => Promise<void>;
   updateProjectType: (
     id: string,
     projectType: Omit<ProjectType, "id" | "createdAt">,
-  ) => void;
-  deleteProjectType: (id: string) => void;
+  ) => Promise<void>;
+  deleteProjectType: (id: string) => Promise<void>;
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
@@ -75,362 +85,449 @@ interface ProjectProviderProps {
 }
 
 export const ProjectProvider = ({ children }: ProjectProviderProps) => {
-  const [categories, setCategories] = useState<Category[]>(
-    [
-      {
-        id: "2",
-        value: "bathroom",
-        label: "Bathroom",
-        createdAt: "2024-01-01",
-      },
-      { id: "4", value: "bedroom", label: "Bedroom", createdAt: "2024-01-01" },
-      { id: "1", value: "kitchen", label: "Kitchen", createdAt: "2024-01-01" },
-      {
-        id: "3",
-        value: "living",
-        label: "Living Room",
-        createdAt: "2024-01-01",
-      },
-      { id: "5", value: "office", label: "Office", createdAt: "2024-01-01" },
-      { id: "6", value: "outdoor", label: "Outdoor", createdAt: "2024-01-01" },
-    ].sort((a, b) => a.label.localeCompare(b.label)),
-  );
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [projectTypes, setProjectTypes] = useState<ProjectType[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [projectTypes, setProjectTypes] = useState<ProjectType[]>([
-    {
-      id: "1",
-      value: "residential",
-      label: "Residential",
-      createdAt: "2024-01-01",
-    },
-    {
-      id: "2",
-      value: "commercial",
-      label: "Commercial",
-      createdAt: "2024-01-01",
-    },
-    {
-      id: "3",
-      value: "outdoor-living",
-      label: "Outdoor Living",
-      createdAt: "2024-01-01",
-    },
-  ]);
+  // Load data from Supabase on mount
+  useEffect(() => {
+    loadInitialData();
+  }, []);
 
-  const [projects, setProjects] = useState<Project[]>([
-    {
-      id: "1",
-      title: "Modern Kitchen Renovation",
-      description:
-        "Complete transformation of an outdated kitchen into a modern, functional space with custom cabinetry, quartz countertops, and new appliances.",
-      category: "kitchen",
-      projectType: "residential",
-      tags: ["kitchen", "modern", "renovation"],
-      beforeImage1:
-        "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&q=80",
-      afterImage1:
-        "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80",
-      beforeImage2:
-        "https://images.unsplash.com/photo-1600489000022-c2086d79f9d4?w=800&q=80",
-      afterImage2:
-        "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800&q=80",
-      additionalImages: [
-        "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=800&q=80",
-        "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80",
-        "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&q=80",
-      ],
-      duration: "8 weeks",
-      budget: "$45,000 - $65,000",
-      materials: [
-        "Quartz countertops",
-        "Custom oak cabinetry",
-        "Stainless steel appliances",
-        "Porcelain tile flooring",
-        "LED recessed lighting",
-      ],
-      createdAt: "2024-01-15",
-      updatedAt: "2024-01-15",
-    },
-    {
-      id: "2",
-      title: "Luxury Master Bathroom",
-      description:
-        "Spa-inspired bathroom renovation featuring natural stone, rainfall shower, and heated floors.",
-      category: "bathroom",
-      projectType: "residential",
-      tags: ["bathroom", "luxury", "spa"],
-      beforeImage1:
-        "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=80",
-      afterImage1:
-        "https://images.unsplash.com/photo-1620626011761-996317b8d101?w=800&q=80",
-      beforeImage2:
-        "https://images.unsplash.com/photo-1584622781564-1d987ba4deb0?w=800&q=80",
-      afterImage2:
-        "https://images.unsplash.com/photo-1620626011761-996317b8d101?w=800&q=80",
-      additionalImages: [
-        "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=80",
-        "https://images.unsplash.com/photo-1620626011761-996317b8d101?w=800&q=80",
-        "https://images.unsplash.com/photo-1584622781564-1d987ba4deb0?w=800&q=80",
-      ],
-      duration: "6 weeks",
-      budget: "$35,000 - $50,000",
-      materials: [
-        "Carrara marble tiles",
-        "Rainfall shower system",
-        "Heated floor tiles",
-        "Custom vanity",
-        "LED mirror lighting",
-      ],
-      createdAt: "2024-01-10",
-      updatedAt: "2024-01-10",
-    },
-    {
-      id: "3",
-      title: "Contemporary Living Room",
-      description:
-        "Open-concept living space redesign with modern furniture, ambient lighting, and artistic elements.",
-      category: "living",
-      projectType: "residential",
-      tags: ["living", "contemporary", "modern"],
-      beforeImage1:
-        "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&q=80",
-      afterImage1:
-        "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80",
-      beforeImage2:
-        "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=800&q=80",
-      afterImage2:
-        "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80",
-      additionalImages: [
-        "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&q=80",
-        "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80",
-        "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=800&q=80",
-      ],
-      duration: "4 weeks",
-      budget: "$25,000 - $35,000",
-      materials: [
-        "Hardwood flooring",
-        "Custom built-ins",
-        "Designer lighting fixtures",
-        "Modern furniture",
-        "Accent wall treatment",
-      ],
-      createdAt: "2024-01-12",
-      updatedAt: "2024-01-12",
-    },
-    {
-      id: "4",
-      title: "Home Office Makeover",
-      description:
-        "Productive workspace transformation with ergonomic furniture, smart storage, and natural lighting.",
-      category: "office",
-      projectType: "residential",
-      tags: ["office", "workspace", "modern"],
-      beforeImage1:
-        "https://images.unsplash.com/photo-1558959356-2d5b6f35c6d0?w=800&q=80",
-      afterImage1:
-        "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800&q=80",
-      beforeImage2:
-        "https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?w=800&q=80",
-      afterImage2:
-        "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800&q=80",
-      additionalImages: [
-        "https://images.unsplash.com/photo-1558959356-2d5b6f35c6d0?w=800&q=80",
-        "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800&q=80",
-        "https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?w=800&q=80",
-      ],
-      duration: "3 weeks",
-      budget: "$15,000 - $25,000",
-      materials: [
-        "Built-in desk system",
-        "Ergonomic furniture",
-        "Smart lighting controls",
-        "Custom storage solutions",
-        "Sound dampening panels",
-      ],
-      createdAt: "2024-01-08",
-      updatedAt: "2024-01-08",
-    },
-    {
-      id: "5",
-      title: "Cozy Bedroom Retreat",
-      description:
-        "Peaceful bedroom transformation with warm colors, luxurious textiles, and ambient lighting.",
-      category: "bedroom",
-      projectType: "residential",
-      tags: ["bedroom", "cozy", "retreat"],
-      beforeImage1:
-        "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?w=800&q=80",
-      afterImage1:
-        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=800&q=80",
-      beforeImage2:
-        "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80",
-      afterImage2:
-        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=800&q=80",
-      additionalImages: [
-        "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?w=800&q=80",
-        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=800&q=80",
-        "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80",
-      ],
-      duration: "3 weeks",
-      budget: "$12,000 - $18,000",
-      materials: [
-        "Custom headboard",
-        "Luxury bedding",
-        "Ambient lighting",
-        "Built-in nightstands",
-        "Blackout window treatments",
-      ],
-      createdAt: "2024-01-05",
-      updatedAt: "2024-01-05",
-    },
-    {
-      id: "6",
-      title: "Outdoor Patio Design",
-      description:
-        "Stunning outdoor living space with weather-resistant furniture, fire pit, and landscape design.",
-      category: "outdoor",
-      projectType: "residential",
-      tags: ["outdoor", "patio", "landscape"],
-      beforeImage1:
-        "https://images.unsplash.com/photo-1523539693385-e5e891eb4465?w=800&q=80",
-      afterImage1:
-        "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800&q=80",
-      beforeImage2:
-        "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800&q=80",
-      afterImage2:
-        "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800&q=80",
-      additionalImages: [
-        "https://images.unsplash.com/photo-1523539693385-e5e891eb4465?w=800&q=80",
-        "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800&q=80",
-        "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800&q=80",
-      ],
-      duration: "2 weeks",
-      budget: "$8,000 - $15,000",
-      materials: [
-        "Teak outdoor furniture",
-        "Natural stone fire pit",
-        "Weather-resistant fabrics",
-        "Outdoor lighting system",
-        "Drought-resistant plants",
-      ],
-      createdAt: "2024-01-03",
-      updatedAt: "2024-01-03",
-    },
-  ]);
+  const loadInitialData = async () => {
+    try {
+      setLoading(true);
+      console.log("🔄 Loading initial data from Supabase...");
 
-  const addProject = (
-    projectData: Omit<Project, "id" | "createdAt" | "updatedAt">,
-  ) => {
-    const newProject: Project = {
-      ...projectData,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString().split("T")[0],
-      updatedAt: new Date().toISOString().split("T")[0],
-    };
-    setProjects((prev) => [...prev, newProject]);
+      // Test Supabase connection first
+      const { data: testData, error: testError } = await supabase
+        .from("projects")
+        .select("count", { count: "exact", head: true });
+
+      if (testError) {
+        console.error("❌ Supabase connection test failed:", testError);
+        console.error("Supabase URL:", import.meta.env.VITE_SUPABASE_URL);
+        console.error(
+          "Supabase Key exists:",
+          !!import.meta.env.VITE_SUPABASE_ANON_KEY,
+        );
+        return;
+      }
+
+      console.log("✅ Supabase connection successful");
+
+      // Load categories
+      console.log("📂 Loading categories...");
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from("categories")
+        .select("*")
+        .order("label");
+
+      if (categoriesError) {
+        console.error("❌ Error loading categories:", categoriesError);
+      } else {
+        console.log("✅ Categories loaded:", categoriesData?.length || 0);
+        setCategories(
+          (categoriesData || []).map((cat) => ({
+            id: cat.id,
+            value: cat.value,
+            label: cat.label,
+            createdAt: cat.created_at,
+          })),
+        );
+      }
+
+      // Load project types
+      console.log("🏷️ Loading project types...");
+      const { data: projectTypesData, error: projectTypesError } =
+        await supabase.from("project_types").select("*").order("label");
+
+      if (projectTypesError) {
+        console.error("❌ Error loading project types:", projectTypesError);
+      } else {
+        console.log("✅ Project types loaded:", projectTypesData?.length || 0);
+        setProjectTypes(
+          (projectTypesData || []).map((type) => ({
+            id: type.id,
+            value: type.value,
+            label: type.label,
+            createdAt: type.created_at,
+          })),
+        );
+      }
+
+      // Load projects
+      console.log("🏠 Loading projects...");
+      const { data: projectsData, error: projectsError } = await supabase
+        .from("projects")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (projectsError) {
+        console.error("❌ Error loading projects:", projectsError);
+      } else {
+        console.log("✅ Projects loaded:", projectsData?.length || 0);
+        console.log("📋 Project data:", projectsData);
+        setProjects(
+          (projectsData || []).map((project) => ({
+            id: project.id,
+            title: project.title,
+            description: project.description,
+            category: project.category,
+            projectType: project.project_type,
+            tags: project.tags || [],
+            beforeImage1: project.before_image_1,
+            afterImage1: project.after_image_1,
+            beforeImage2: project.before_image_2 || "",
+            afterImage2: project.after_image_2 || "",
+            additionalImages: project.additional_images || [],
+            duration: project.duration || "",
+            budget: project.budget || "",
+            materials: project.materials || [],
+            createdAt: project.created_at,
+            updatedAt: project.updated_at,
+          })),
+        );
+      }
+    } catch (error) {
+      console.error("💥 Critical error loading initial data:", error);
+      console.error("Error details:", {
+        message: error.message,
+        stack: error.stack,
+        supabaseUrl: import.meta.env.VITE_SUPABASE_URL,
+        hasAnonKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY,
+      });
+    } finally {
+      setLoading(false);
+      console.log("🏁 Initial data loading completed");
+    }
   };
 
-  const updateProject = (
+  const addProject = async (
+    projectData: Omit<Project, "id" | "createdAt" | "updatedAt">,
+  ) => {
+    try {
+      console.log("💾 Adding project with materials:", projectData.materials);
+      const { data, error } = await supabase
+        .from("projects")
+        .insert({
+          title: projectData.title,
+          description: projectData.description,
+          category: projectData.category,
+          project_type: projectData.projectType,
+          tags: projectData.tags || [],
+          before_image_1: projectData.beforeImage1,
+          after_image_1: projectData.afterImage1,
+          before_image_2: projectData.beforeImage2 || null,
+          after_image_2: projectData.afterImage2 || null,
+          additional_images: projectData.additionalImages || [],
+          duration: projectData.duration || null,
+          budget: projectData.budget || null,
+          materials: projectData.materials || [],
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error adding project:", error);
+        throw error;
+      }
+
+      const newProject: Project = {
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        projectType: data.project_type,
+        tags: data.tags || [],
+        beforeImage1: data.before_image_1,
+        afterImage1: data.after_image_1,
+        beforeImage2: data.before_image_2 || "",
+        afterImage2: data.after_image_2 || "",
+        additionalImages: data.additional_images || [],
+        duration: data.duration || "",
+        budget: data.budget || "",
+        materials: data.materials || [],
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+      };
+
+      setProjects((prev) => [newProject, ...prev]);
+      console.log("Project added successfully:", newProject);
+    } catch (error) {
+      console.error("Failed to add project:", error);
+      throw error;
+    }
+  };
+
+  const updateProject = async (
     id: string,
     projectData: Omit<Project, "id" | "createdAt" | "updatedAt">,
   ) => {
-    setProjects((prev) =>
-      prev.map((project) => {
-        if (project.id === id) {
-          return {
-            ...projectData,
-            id,
-            createdAt: project.createdAt,
-            updatedAt: new Date().toISOString().split("T")[0],
-          };
-        }
-        return project;
-      }),
-    );
+    try {
+      console.log("🔄 Updating project with materials:", projectData.materials);
+      const { data, error } = await supabase
+        .from("projects")
+        .update({
+          title: projectData.title,
+          description: projectData.description,
+          category: projectData.category,
+          project_type: projectData.projectType,
+          tags: projectData.tags || [],
+          before_image_1: projectData.beforeImage1,
+          after_image_1: projectData.afterImage1,
+          before_image_2: projectData.beforeImage2 || null,
+          after_image_2: projectData.afterImage2 || null,
+          additional_images: projectData.additionalImages || [],
+          duration: projectData.duration || null,
+          budget: projectData.budget || null,
+          materials: projectData.materials || [],
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error updating project:", error);
+        throw error;
+      }
+
+      const updatedProject: Project = {
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        projectType: data.project_type,
+        tags: data.tags || [],
+        beforeImage1: data.before_image_1,
+        afterImage1: data.after_image_1,
+        beforeImage2: data.before_image_2 || "",
+        afterImage2: data.after_image_2 || "",
+        additionalImages: data.additional_images || [],
+        duration: data.duration || "",
+        budget: data.budget || "",
+        materials: data.materials || [],
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+      };
+
+      setProjects((prev) =>
+        prev.map((project) => (project.id === id ? updatedProject : project)),
+      );
+      console.log("Project updated successfully:", updatedProject);
+    } catch (error) {
+      console.error("Failed to update project:", error);
+      throw error;
+    }
   };
 
-  const deleteProject = (id: string) => {
-    setProjects((prev) => prev.filter((project) => project.id !== id));
+  const deleteProject = async (id: string) => {
+    try {
+      const { error } = await supabase.from("projects").delete().eq("id", id);
+
+      if (error) {
+        console.error("Error deleting project:", error);
+        throw error;
+      }
+
+      setProjects((prev) => prev.filter((project) => project.id !== id));
+      console.log("Project deleted successfully:", id);
+    } catch (error) {
+      console.error("Failed to delete project:", error);
+      throw error;
+    }
   };
 
   const getProject = (id: string) => {
     return projects.find((project) => project.id === id);
   };
 
-  const addCategory = (categoryData: Omit<Category, "id" | "createdAt">) => {
-    const newCategory: Category = {
-      ...categoryData,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString().split("T")[0],
-    };
-    setCategories((prev) =>
-      [...prev, newCategory].sort((a, b) => a.label.localeCompare(b.label)),
-    );
+  const addCategory = async (
+    categoryData: Omit<Category, "id" | "createdAt">,
+  ) => {
+    try {
+      const { data, error } = await supabase
+        .from("categories")
+        .insert({
+          value: categoryData.value,
+          label: categoryData.label,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error adding category:", error);
+        throw error;
+      }
+
+      const newCategory: Category = {
+        id: data.id,
+        value: data.value,
+        label: data.label,
+        createdAt: data.created_at,
+      };
+
+      setCategories((prev) =>
+        [...prev, newCategory].sort((a, b) => a.label.localeCompare(b.label)),
+      );
+    } catch (error) {
+      console.error("Failed to add category:", error);
+      throw error;
+    }
   };
 
-  const updateCategory = (
+  const updateCategory = async (
     id: string,
     categoryData: Omit<Category, "id" | "createdAt">,
   ) => {
-    setCategories((prev) =>
-      prev
-        .map((category) => {
-          if (category.id === id) {
-            return {
-              ...categoryData,
-              id,
-              createdAt: category.createdAt,
-            };
-          }
-          return category;
+    try {
+      const { data, error } = await supabase
+        .from("categories")
+        .update({
+          value: categoryData.value,
+          label: categoryData.label,
         })
-        .sort((a, b) => a.label.localeCompare(b.label)),
-    );
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error updating category:", error);
+        throw error;
+      }
+
+      const updatedCategory: Category = {
+        id: data.id,
+        value: data.value,
+        label: data.label,
+        createdAt: data.created_at,
+      };
+
+      setCategories((prev) =>
+        prev
+          .map((category) => (category.id === id ? updatedCategory : category))
+          .sort((a, b) => a.label.localeCompare(b.label)),
+      );
+    } catch (error) {
+      console.error("Failed to update category:", error);
+      throw error;
+    }
   };
 
-  const deleteCategory = (id: string) => {
-    setCategories((prev) => prev.filter((category) => category.id !== id));
+  const deleteCategory = async (id: string) => {
+    try {
+      const { error } = await supabase.from("categories").delete().eq("id", id);
+
+      if (error) {
+        console.error("Error deleting category:", error);
+        throw error;
+      }
+
+      setCategories((prev) => prev.filter((category) => category.id !== id));
+    } catch (error) {
+      console.error("Failed to delete category:", error);
+      throw error;
+    }
   };
 
-  const addProjectType = (
+  const addProjectType = async (
     projectTypeData: Omit<ProjectType, "id" | "createdAt">,
   ) => {
-    const newProjectType: ProjectType = {
-      ...projectTypeData,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString().split("T")[0],
-    };
-    setProjectTypes((prev) => [...prev, newProjectType]);
+    try {
+      const { data, error } = await supabase
+        .from("project_types")
+        .insert({
+          value: projectTypeData.value,
+          label: projectTypeData.label,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error adding project type:", error);
+        throw error;
+      }
+
+      const newProjectType: ProjectType = {
+        id: data.id,
+        value: data.value,
+        label: data.label,
+        createdAt: data.created_at,
+      };
+
+      setProjectTypes((prev) => [...prev, newProjectType]);
+    } catch (error) {
+      console.error("Failed to add project type:", error);
+      throw error;
+    }
   };
 
-  const updateProjectType = (
+  const updateProjectType = async (
     id: string,
     projectTypeData: Omit<ProjectType, "id" | "createdAt">,
   ) => {
-    setProjectTypes((prev) =>
-      prev.map((projectType) => {
-        if (projectType.id === id) {
-          return {
-            ...projectTypeData,
-            id,
-            createdAt: projectType.createdAt,
-          };
-        }
-        return projectType;
-      }),
-    );
+    try {
+      const { data, error } = await supabase
+        .from("project_types")
+        .update({
+          value: projectTypeData.value,
+          label: projectTypeData.label,
+        })
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error updating project type:", error);
+        throw error;
+      }
+
+      const updatedProjectType: ProjectType = {
+        id: data.id,
+        value: data.value,
+        label: data.label,
+        createdAt: data.created_at,
+      };
+
+      setProjectTypes((prev) =>
+        prev.map((projectType) =>
+          projectType.id === id ? updatedProjectType : projectType,
+        ),
+      );
+    } catch (error) {
+      console.error("Failed to update project type:", error);
+      throw error;
+    }
   };
 
-  const deleteProjectType = (id: string) => {
-    setProjectTypes((prev) =>
-      prev.filter((projectType) => projectType.id !== id),
-    );
+  const deleteProjectType = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("project_types")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        console.error("Error deleting project type:", error);
+        throw error;
+      }
+
+      setProjectTypes((prev) =>
+        prev.filter((projectType) => projectType.id !== id),
+      );
+    } catch (error) {
+      console.error("Failed to delete project type:", error);
+      throw error;
+    }
   };
 
   const value = {
     projects,
     categories,
     projectTypes,
+    loading,
     addProject,
     updateProject,
     deleteProject,

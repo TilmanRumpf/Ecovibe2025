@@ -16,7 +16,7 @@ const BeforeAfterSlider = ({
   afterAlt = "After renovation",
   className = "",
 }: BeforeAfterSliderProps) => {
-  const [sliderPosition, setSliderPosition] = useState(50);
+  const [sliderPosition, setSliderPosition] = useState(20);
   const [isDragging, setIsDragging] = useState(false);
   const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(
     null,

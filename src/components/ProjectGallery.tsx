@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import ProjectCard from "./ProjectCard";
-import { useProjects } from "@/contexts/ProjectContext";
+import { useProjects, Project } from "@/contexts/ProjectContext";
 
 interface ProjectGalleryProps {
   projects?: any[];
 }
 
 const ProjectGallery = ({ projects: propProjects }: ProjectGalleryProps) => {
-  const { projects: contextProjects, projectTypes } = useProjects();
+  const { projects: contextProjects, categories, projectTypes } = useProjects();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   const defaultProjects: Project[] = [
@@ -141,18 +141,25 @@ const ProjectGallery = ({ projects: propProjects }: ProjectGalleryProps) => {
       ? propProjects || contextProjects
       : defaultProjects;
 
-  // Get unique categories for filter buttons
-  const categories = [
-    "all",
-    ...new Set(displayProjects.map((project) => project.category)),
-  ];
+  // Create combined filters from categories and project types
+  const categoryValues = categories.map((cat) => cat.value);
+  const projectTypeValues = projectTypes.map((type) => type.value);
+  const allFilters = ["all", ...categoryValues, ...projectTypeValues];
 
-  // Filter projects based on selected category
+  // Debug logging
+  console.log("🔍 Display projects:", displayProjects);
+  console.log("Available categories:", categories);
+  console.log("Available project types:", projectTypes);
+  console.log("All filters:", allFilters);
+
+  // Filter projects based on selected category or project type
   const filteredProjects =
     selectedCategory === "all"
       ? displayProjects
       : displayProjects.filter(
-          (project) => project.category === selectedCategory,
+          (project) =>
+            project.category === selectedCategory ||
+            project.projectType === selectedCategory,
         );
 
   const handleCategoryClick = (category: string) => {
@@ -166,39 +173,58 @@ const ProjectGallery = ({ projects: propProjects }: ProjectGalleryProps) => {
           Our Projects
         </h2>
 
-        {/* Category filters */}
+        {/* Category and Project Type filters */}
         <div className="flex flex-wrap justify-center gap-2 mb-6 sm:mb-8 px-2">
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => handleCategoryClick(category)}
-              className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
-                selectedCategory === category
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-              }`}
-            >
-              {category.charAt(0).toUpperCase() + category.slice(1)}
-            </button>
-          ))}
+          {allFilters.map((filter) => {
+            // Get display name from context if available
+            const categoryMatch = categories.find(
+              (cat) => cat.value === filter,
+            );
+            const projectTypeMatch = projectTypes.find(
+              (type) => type.value === filter,
+            );
+            const displayName =
+              categoryMatch?.label ||
+              projectTypeMatch?.label ||
+              filter.charAt(0).toUpperCase() + filter.slice(1);
+
+            return (
+              <button
+                key={filter}
+                onClick={() => handleCategoryClick(filter)}
+                className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+                  selectedCategory === filter
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                }`}
+              >
+                {displayName}
+              </button>
+            );
+          })}
         </div>
 
         {/* Projects grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProjects.map((project) => (
-            <ProjectCard
-              key={project.id}
-              id={project.id}
-              title={project.title}
-              category={project.category}
-              projectType={
-                projectTypes.find((type) => type.value === project.projectType)
-                  ?.label || project.projectType
-              }
-              description={project.description}
-              thumbnailUrl={project.afterImage1 || project.thumbnailUrl}
-            />
-          ))}
+          {filteredProjects.map((project) => {
+            // Handle both property naming conventions safely
+            const thumbnailImage = project.afterImage1 || project.thumbnailUrl || project.afterImageUrl || "";
+            const projectTypeLabel = projectTypes.find((type) => type.value === project.projectType)?.label || project.projectType || "";
+            
+            console.log("🖼️ Project thumbnail for", project.title, ":", thumbnailImage);
+            
+            return (
+              <ProjectCard
+                key={project.id}
+                id={project.id}
+                title={project.title || ""}
+                category={project.category || ""}
+                projectType={projectTypeLabel}
+                description={project.description || ""}
+                thumbnailUrl={thumbnailImage}
+              />
+            );
+          })}
         </div>
 
         {/* Empty state */}

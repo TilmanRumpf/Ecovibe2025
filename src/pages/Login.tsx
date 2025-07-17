@@ -4,18 +4,32 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
-import { Eye, EyeOff, Lock } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 
 const Login = () => {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [passcode, setPasscode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const { login } = useAuth();
+  // Forgot password state
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+  const [forgotPasswordError, setForgotPasswordError] = useState("");
+  const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState("");
+  const [isForgotPasswordLoading, setIsForgotPasswordLoading] = useState(false);
+  const [showForgotPasswordDialog, setShowForgotPasswordDialog] =
+    useState(false);
+
+  const { login, forgotPassword } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -23,24 +37,37 @@ const Login = () => {
     setError("");
     setIsLoading(true);
 
-    // Validate passcode is 4 digits
-    if (!/^\d{4}$/.test(passcode)) {
-      setError("Passcode must be exactly 4 digits");
-      setIsLoading(false);
-      return;
-    }
+    const result = await login(email, password);
 
-    const success = login(username, password, passcode);
-
-    if (success) {
+    if (result.success) {
       navigate("/shabnamona");
     } else {
-      setError(
-        "Invalid credentials. Please check your username, password, and passcode.",
-      );
+      setError(result.error || "Login failed. Please try again.");
     }
 
     setIsLoading(false);
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotPasswordError("");
+    setForgotPasswordSuccess("");
+    setIsForgotPasswordLoading(true);
+
+    const result = await forgotPassword(forgotPasswordEmail);
+
+    if (result.success) {
+      setForgotPasswordSuccess(
+        "Password reset email sent! Please check your inbox and follow the instructions to reset your password.",
+      );
+      setForgotPasswordEmail("");
+    } else {
+      setForgotPasswordError(
+        result.error || "Failed to send reset email. Please try again.",
+      );
+    }
+
+    setIsForgotPasswordLoading(false);
   };
 
   return (
@@ -60,13 +87,13 @@ const Login = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
-                id="username"
+                id="email"
                 type="email"
-                placeholder="Enter your username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
                 className="w-full"
               />
@@ -94,23 +121,6 @@ const Login = () => {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="passcode">4-Digit Passcode</Label>
-              <Input
-                id="passcode"
-                type="text"
-                placeholder="Enter 4-digit passcode"
-                value={passcode}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, "").slice(0, 4);
-                  setPasscode(value);
-                }}
-                required
-                maxLength={4}
-                className="w-full text-center text-lg tracking-widest"
-              />
-            </div>
-
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
                 {error}
@@ -120,13 +130,86 @@ const Login = () => {
             <Button
               type="submit"
               className="w-full"
-              disabled={
-                isLoading || !username || !password || passcode.length !== 4
-              }
+              disabled={isLoading || !email || !password}
             >
-              {isLoading ? "Authenticating..." : "Access Admin Panel"}
+              {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
+
+          <div className="mt-4 text-center">
+            <Dialog
+              open={showForgotPasswordDialog}
+              onOpenChange={setShowForgotPasswordDialog}
+            >
+              <DialogTrigger asChild>
+                <button
+                  type="button"
+                  className="text-sm text-primary hover:text-primary/80 underline"
+                >
+                  Forgot your password?
+                </button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md bg-white">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Mail className="w-5 h-5" />
+                    Reset Password
+                  </DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="forgot-email">Email Address</Label>
+                    <Input
+                      id="forgot-email"
+                      type="email"
+                      placeholder="Enter your email address"
+                      value={forgotPasswordEmail}
+                      onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                      required
+                      className="w-full"
+                    />
+                  </div>
+
+                  {forgotPasswordError && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+                      {forgotPasswordError}
+                    </div>
+                  )}
+
+                  {forgotPasswordSuccess && (
+                    <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md text-sm">
+                      {forgotPasswordSuccess}
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setShowForgotPasswordDialog(false);
+                        setForgotPasswordEmail("");
+                        setForgotPasswordError("");
+                        setForgotPasswordSuccess("");
+                      }}
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={isForgotPasswordLoading || !forgotPasswordEmail}
+                      className="flex-1"
+                    >
+                      {isForgotPasswordLoading
+                        ? "Sending..."
+                        : "Send Reset Email"}
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
         </CardContent>
       </Card>
     </div>
