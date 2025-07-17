@@ -17,27 +17,10 @@ import { useProjects } from "@/contexts/ProjectContext";
 const Home = () => {
   const { projects, categories, projectTypes } = useProjects();
 
-  // Get featured projects from context
-  const featuredProject = projects[0] || {
-    title: "Modern Kitchen Transformation",
-    before_image_1:
-      "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&q=80",
-    after_image_1:
-      "https://images.unsplash.com/photo-1556911220-bff31c812dba?w=800&q=80",
-    description:
-      "Complete kitchen remodel with custom cabinetry, marble countertops, and state-of-the-art appliances.",
-    category: "Kitchen",
-  };
-
-  const secondFeaturedProject = projects[1] || {
-    title: "Luxury Bathroom Renovation",
-    before_image_1:
-      "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80",
-    after_image_1:
-      "https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=800&q=80",
-    description:
-      "Modern bathroom transformation with premium fixtures, marble tiles, and elegant lighting design.",
-  };
+  // Only use real projects from database, no fallback stock images
+  const hasRealProjects = projects && projects.length > 0;
+  const featuredProject = hasRealProjects ? projects[0] : null;
+  const secondFeaturedProject = hasRealProjects && projects.length > 1 ? projects[1] : null;
 
   return (
     <div className="min-h-screen bg-white">
@@ -177,44 +160,55 @@ const Home = () => {
         </div>
 
         <div className="max-w-6xl mx-auto">
-          {/* Side-by-side layout for large screens, stacked for small */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-            <div className="space-y-4">
-              <BeforeAfterSlider
-                beforeImage={featuredProject.before_image_1}
-                afterImage={featuredProject.after_image_1}
-                beforeAlt="Before kitchen renovation"
-                afterAlt="After kitchen renovation"
-                className="h-[300px] sm:h-[400px]"
-              />
-              <div className="text-center lg:text-left px-4 lg:px-0">
-                <h3 className="text-xl sm:text-2xl font-semibold">
-                  {featuredProject.title}
-                </h3>
-                <p className="mt-2 text-sm sm:text-base text-gray-600">
-                  {featuredProject.description}
-                </p>
-              </div>
-            </div>
+          {hasRealProjects ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+              {featuredProject && (
+                <div className="space-y-4">
+                  <BeforeAfterSlider
+                    beforeImage={featuredProject.before_image_1}
+                    afterImage={featuredProject.after_image_1}
+                    beforeAlt={`Before ${featuredProject.title}`}
+                    afterAlt={`After ${featuredProject.title}`}
+                    className="h-[300px] sm:h-[400px]"
+                  />
+                  <div className="text-center lg:text-left px-4 lg:px-0">
+                    <h3 className="text-xl sm:text-2xl font-semibold">
+                      {featuredProject.title}
+                    </h3>
+                    <p className="mt-2 text-sm sm:text-base text-gray-600">
+                      {featuredProject.description}
+                    </p>
+                  </div>
+                </div>
+              )}
 
-            <div className="space-y-4">
-              <BeforeAfterSlider
-                beforeImage={secondFeaturedProject.before_image_1}
-                afterImage={secondFeaturedProject.after_image_1}
-                beforeAlt="Before bathroom renovation"
-                afterAlt="After bathroom renovation"
-                className="h-[300px] sm:h-[400px]"
-              />
-              <div className="text-center lg:text-left px-4 lg:px-0">
-                <h3 className="text-xl sm:text-2xl font-semibold">
-                  {secondFeaturedProject.title}
-                </h3>
-                <p className="mt-2 text-sm sm:text-base text-gray-600">
-                  {secondFeaturedProject.description}
-                </p>
-              </div>
+              {secondFeaturedProject && (
+                <div className="space-y-4">
+                  <BeforeAfterSlider
+                    beforeImage={secondFeaturedProject.before_image_1}
+                    afterImage={secondFeaturedProject.after_image_1}
+                    beforeAlt={`Before ${secondFeaturedProject.title}`}
+                    afterAlt={`After ${secondFeaturedProject.title}`}
+                    className="h-[300px] sm:h-[400px]"
+                  />
+                  <div className="text-center lg:text-left px-4 lg:px-0">
+                    <h3 className="text-xl sm:text-2xl font-semibold">
+                      {secondFeaturedProject.title}
+                    </h3>
+                    <p className="mt-2 text-sm sm:text-base text-gray-600">
+                      {secondFeaturedProject.description}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg">
+                Welcome! Use the admin panel to add your first project and showcase your work.
+              </p>
+            </div>
+          )}
         </div>
       </section>
 

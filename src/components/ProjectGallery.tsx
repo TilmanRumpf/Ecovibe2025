@@ -10,6 +10,10 @@ const ProjectGallery = ({ projects: propProjects }: ProjectGalleryProps) => {
   const { projects: contextProjects, categories, projectTypes } = useProjects();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
+  // Use actual projects from database, only show defaults if NO projects exist at all
+  const projects = propProjects || contextProjects;
+  const hasRealProjects = projects && projects.length > 0;
+
   const defaultProjects: Project[] = [
     {
       id: "1",
@@ -155,7 +159,7 @@ const ProjectGallery = ({ projects: propProjects }: ProjectGalleryProps) => {
   };
 
   return (
-    <div className="bg-background py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto">
         <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8">
           Our Projects
@@ -192,27 +196,19 @@ const ProjectGallery = ({ projects: propProjects }: ProjectGalleryProps) => {
           })}
         </div>
 
-        {/* Projects grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProjects.map((project) => {
-            // Handle both property naming conventions safely
-            const thumbnailImage = project.after_image_1 || "";
-            const projectTypeLabel = projectTypes.find((type) => type.value === project.project_type)?.label || project.project_type || "";
-            
-            console.log("🖼️ Project thumbnail for", project.title, ":", thumbnailImage);
-            
-            return (
-              <ProjectCard
-                key={project.id}
-                id={project.id}
-                title={project.title || ""}
-                category={project.category || ""}
-                projectType={projectTypeLabel}
-                description={project.description || ""}
-                thumbnailUrl={thumbnailImage}
-              />
-            );
-          })}
+        {/* Projects Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {hasRealProjects ? (
+            filteredProjects.map((project) => (
+              <ProjectCard key={project.id} project={project} />
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12">
+              <p className="text-gray-500 text-lg">
+                No projects found. Use the admin panel to add your first project.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Empty state */}
