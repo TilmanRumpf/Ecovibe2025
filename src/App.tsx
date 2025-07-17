@@ -36,10 +36,21 @@ function App() {
   return (
     <AuthProvider>
       <ProjectProvider>
-        <Suspense fallback={<p>Loading...</p>}>
-          {/* Tempo routes */}
-          {import.meta.env.VITE_TEMPO && useRoutes(routes)}
-          
+        <Suspense
+          fallback={
+            <div className="min-h-screen flex items-center justify-center bg-white">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                <p>Loading EcoVibe Design...</p>
+              </div>
+            </div>
+          }
+        >
+          {/* Tempo routes - only in development */}
+          {import.meta.env.DEV &&
+            import.meta.env.VITE_TEMPO &&
+            useRoutes(routes)}
+
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/project/:id" element={<ProjectDetail />} />

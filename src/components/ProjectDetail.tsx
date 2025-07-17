@@ -17,7 +17,18 @@ const ProjectDetail = ({ project, onBack }: ProjectDetailProps) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState("overview");
-  const { getProject, projectTypes } = useProjects();
+  
+  // Handle case where component is used outside of ProjectProvider (e.g., in storyboards)
+  let getProject, projectTypes;
+  try {
+    const projectContext = useProjects();
+    getProject = projectContext.getProject;
+    projectTypes = projectContext.projectTypes;
+  } catch (error) {
+    // Fallback when used outside of ProjectProvider
+    getProject = () => null;
+    projectTypes = [];
+  }
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -25,7 +36,7 @@ const ProjectDetail = ({ project, onBack }: ProjectDetailProps) => {
   }, []);
 
   // Get project from context if not provided as prop
-  const currentProject = project || (id ? getProject(id) : null);
+  const currentProject = project || (id && getProject ? getProject(id) : null);
 
   if (!currentProject) {
     return (
@@ -78,7 +89,7 @@ const ProjectDetail = ({ project, onBack }: ProjectDetailProps) => {
         <p className="text-gray-500 capitalize">{currentProject.category}</p>
         <span className="text-gray-300">•</span>
         <p className="text-gray-500">
-          {projectTypes.find(
+          {projectTypes?.find(
             (type) => type.value === currentProject.projectType,
           )?.label || currentProject.projectType}
         </p>
