@@ -15,14 +15,12 @@ const ProjectGallery = ({ projects: propProjects }: ProjectGalleryProps) => {
       id: "1",
       title: "Modern Kitchen Renovation",
       category: "kitchen",
-      projectType: "residential",
+      project_type: "residential",
       description:
         "Complete transformation of a dated kitchen into a sleek, modern space with custom cabinetry and premium appliances.",
-      thumbnailUrl:
-        "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80",
-      beforeImageUrl:
+      before_image_1:
         "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&q=80",
-      afterImageUrl:
+      after_image_1:
         "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80",
       duration: "8 weeks",
       budget: "$45,000 - $65,000",
@@ -36,14 +34,12 @@ const ProjectGallery = ({ projects: propProjects }: ProjectGalleryProps) => {
       id: "2",
       title: "Luxury Master Bathroom",
       category: "bathroom",
-      projectType: "residential",
+      project_type: "residential",
       description:
         "Spa-inspired bathroom renovation featuring natural stone, rainfall shower, and heated floors.",
-      thumbnailUrl:
-        "https://images.unsplash.com/photo-1620626011761-996317b8d101?w=800&q=80",
-      beforeImageUrl:
+      before_image_1:
         "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=80",
-      afterImageUrl:
+      after_image_1:
         "https://images.unsplash.com/photo-1620626011761-996317b8d101?w=800&q=80",
       duration: "6 weeks",
       budget: "$35,000 - $50,000",
@@ -57,14 +53,12 @@ const ProjectGallery = ({ projects: propProjects }: ProjectGalleryProps) => {
       id: "3",
       title: "Contemporary Living Room",
       category: "living",
-      projectType: "residential",
+      project_type: "residential",
       description:
         "Open-concept living space redesign with modern furniture, ambient lighting, and artistic elements.",
-      thumbnailUrl:
-        "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80",
-      beforeImageUrl:
+      before_image_1:
         "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&q=80",
-      afterImageUrl:
+      after_image_1:
         "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80",
       duration: "4 weeks",
       budget: "$25,000 - $35,000",
@@ -78,14 +72,12 @@ const ProjectGallery = ({ projects: propProjects }: ProjectGalleryProps) => {
       id: "4",
       title: "Home Office Makeover",
       category: "office",
-      projectType: "residential",
+      project_type: "residential",
       description:
         "Productive workspace transformation with ergonomic furniture, smart storage, and natural lighting.",
-      thumbnailUrl:
-        "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800&q=80",
-      beforeImageUrl:
+      before_image_1:
         "https://images.unsplash.com/photo-1558959356-2d5b6f35c6d0?w=800&q=80",
-      afterImageUrl:
+      after_image_1:
         "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800&q=80",
       duration: "3 weeks",
       budget: "$15,000 - $25,000",
@@ -99,14 +91,12 @@ const ProjectGallery = ({ projects: propProjects }: ProjectGalleryProps) => {
       id: "5",
       title: "Cozy Bedroom Retreat",
       category: "bedroom",
-      projectType: "residential",
+      project_type: "residential",
       description:
         "Peaceful bedroom transformation with warm colors, luxurious textiles, and ambient lighting.",
-      thumbnailUrl:
-        "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=800&q=80",
-      beforeImageUrl:
+      before_image_1:
         "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?w=800&q=80",
-      afterImageUrl:
+      after_image_1:
         "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=800&q=80",
       duration: "3 weeks",
       budget: "$12,000 - $18,000",
@@ -116,14 +106,12 @@ const ProjectGallery = ({ projects: propProjects }: ProjectGalleryProps) => {
       id: "6",
       title: "Outdoor Patio Design",
       category: "outdoor",
-      projectType: "residential",
+      project_type: "residential",
       description:
         "Stunning outdoor living space with weather-resistant furniture, fire pit, and landscape design.",
-      thumbnailUrl:
-        "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800&q=80",
-      beforeImageUrl:
+      before_image_1:
         "https://images.unsplash.com/photo-1523539693385-e5e891eb4465?w=800&q=80",
-      afterImageUrl:
+      after_image_1:
         "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800&q=80",
       duration: "2 weeks",
       budget: "$8,000 - $15,000",
@@ -159,7 +147,7 @@ const ProjectGallery = ({ projects: propProjects }: ProjectGalleryProps) => {
       : displayProjects.filter(
           (project) =>
             project.category === selectedCategory ||
-            project.projectType === selectedCategory,
+            project.project_type === selectedCategory,
         );
 
   const handleCategoryClick = (category: string) => {
@@ -208,8 +196,8 @@ const ProjectGallery = ({ projects: propProjects }: ProjectGalleryProps) => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProjects.map((project) => {
             // Handle both property naming conventions safely
-            const thumbnailImage = project.afterImage1 || project.thumbnailUrl || project.afterImageUrl || "";
-            const projectTypeLabel = projectTypes.find((type) => type.value === project.projectType)?.label || project.projectType || "";
+            const thumbnailImage = project.after_image_1 || "";
+            const projectTypeLabel = projectTypes.find((type) => type.value === project.project_type)?.label || project.project_type || "";
             
             console.log("🖼️ Project thumbnail for", project.title, ":", thumbnailImage);
             

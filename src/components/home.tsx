@@ -20,9 +20,9 @@ const Home = () => {
   // Get featured projects from context
   const featuredProject = projects[0] || {
     title: "Modern Kitchen Transformation",
-    beforeImage1:
+    before_image_1:
       "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&q=80",
-    afterImage1:
+    after_image_1:
       "https://images.unsplash.com/photo-1556911220-bff31c812dba?w=800&q=80",
     description:
       "Complete kitchen remodel with custom cabinetry, marble countertops, and state-of-the-art appliances.",
@@ -31,9 +31,9 @@ const Home = () => {
 
   const secondFeaturedProject = projects[1] || {
     title: "Luxury Bathroom Renovation",
-    beforeImage1:
+    before_image_1:
       "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80",
-    afterImage1:
+    after_image_1:
       "https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=800&q=80",
     description:
       "Modern bathroom transformation with premium fixtures, marble tiles, and elegant lighting design.",
@@ -181,12 +181,8 @@ const Home = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
             <div className="space-y-4">
               <BeforeAfterSlider
-                beforeImage={
-                  featuredProject.beforeImage1 || featuredProject.beforeImage
-                }
-                afterImage={
-                  featuredProject.afterImage1 || featuredProject.afterImage
-                }
+                beforeImage={featuredProject.before_image_1}
+                afterImage={featuredProject.after_image_1}
                 beforeAlt="Before kitchen renovation"
                 afterAlt="After kitchen renovation"
                 className="h-[300px] sm:h-[400px]"
@@ -203,14 +199,8 @@ const Home = () => {
 
             <div className="space-y-4">
               <BeforeAfterSlider
-                beforeImage={
-                  secondFeaturedProject.beforeImage1 ||
-                  secondFeaturedProject.beforeImage
-                }
-                afterImage={
-                  secondFeaturedProject.afterImage1 ||
-                  secondFeaturedProject.afterImage
-                }
+                beforeImage={secondFeaturedProject.before_image_1}
+                afterImage={secondFeaturedProject.after_image_1}
                 beforeAlt="Before bathroom renovation"
                 afterAlt="After bathroom renovation"
                 className="h-[300px] sm:h-[400px]"
