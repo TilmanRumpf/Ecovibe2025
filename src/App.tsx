@@ -45,10 +45,10 @@ function App() {
               </ProtectedRoute>
             }
           />
-          
+
           {/* Add tempo route protection before catchall */}
           {import.meta.env.VITE_TEMPO && <Route path="/tempobook/*" />}
-          
+
           {/* Redirect any unknown routes to home instead of 404 */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
