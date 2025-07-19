@@ -17,7 +17,7 @@ const ProjectDetail = ({ project, onBack }: ProjectDetailProps) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState("overview");
-  
+
   // Handle case where component is used outside of ProjectProvider (e.g., in storyboards)
   let getProject, projectTypes;
   try {
@@ -69,6 +69,24 @@ const ProjectDetail = ({ project, onBack }: ProjectDetailProps) => {
     }
   };
 
+  const handlePinterestShare = (imageUrl: string, description: string) => {
+    const currentUrl = window.location.href;
+    const pinterestUrl = `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(currentUrl)}&media=${encodeURIComponent(imageUrl)}&description=${encodeURIComponent(description)}`;
+    window.open(pinterestUrl, "_blank", "width=750,height=320");
+  };
+
+  const PinterestIcon = () => (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className="mr-1"
+    >
+      <path d="M12 0C5.373 0 0 5.372 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.219-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.690 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 01.083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.888-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.357-.631-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12.001 24c6.624 0 11.999-5.373 11.999-12C24 5.372 18.626.001 12.001.001z" />
+    </svg>
+  );
+
   return (
     <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 bg-white">
       <div className="flex items-center mb-6">
@@ -97,20 +115,56 @@ const ProjectDetail = ({ project, onBack }: ProjectDetailProps) => {
 
       <div className="mb-6 sm:mb-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
-          <BeforeAfterSlider
-            beforeImage={currentProject.beforeImage1}
-            afterImage={currentProject.afterImage1}
-            beforeAlt={`${currentProject.title} - Before 1`}
-            afterAlt={`${currentProject.title} - After 1`}
-            className="rounded-lg"
-          />
-          <BeforeAfterSlider
-            beforeImage={currentProject.beforeImage2 || currentProject.beforeImage1}
-            afterImage={currentProject.afterImage2 || currentProject.afterImage1}
-            beforeAlt={`${currentProject.title} - Before 2`}
-            afterAlt={`${currentProject.title} - After 2`}
-            className="rounded-lg"
-          />
+          <div className="relative group">
+            <BeforeAfterSlider
+              beforeImage={currentProject.beforeImage1}
+              afterImage={currentProject.afterImage1}
+              beforeAlt={`${currentProject.title} - Before 1`}
+              afterAlt={`${currentProject.title} - After 1`}
+              className="rounded-lg"
+            />
+            <Button
+              variant="secondary"
+              size="sm"
+              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-red-600 hover:bg-red-700 text-white shadow-md"
+              onClick={() =>
+                handlePinterestShare(
+                  currentProject.afterImage1,
+                  `${currentProject.title} - Interior Design Transformation`,
+                )
+              }
+            >
+              <PinterestIcon />
+              Save
+            </Button>
+          </div>
+          <div className="relative group">
+            <BeforeAfterSlider
+              beforeImage={
+                currentProject.beforeImage2 || currentProject.beforeImage1
+              }
+              afterImage={
+                currentProject.afterImage2 || currentProject.afterImage1
+              }
+              beforeAlt={`${currentProject.title} - Before 2`}
+              afterAlt={`${currentProject.title} - After 2`}
+              className="rounded-lg"
+            />
+            <Button
+              variant="secondary"
+              size="sm"
+              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-red-600 hover:bg-red-700 text-white shadow-md"
+              onClick={() =>
+                handlePinterestShare(
+                  currentProject.afterImage2 || currentProject.afterImage1,
+                  `${currentProject.title} - Interior Design Transformation`,
+                )
+              }
+            >
+              <PinterestIcon />
+              Save
+            </Button>
+          </div>
         </div>
 
         {/* Simple Project Images */}
@@ -118,13 +172,27 @@ const ProjectDetail = ({ project, onBack }: ProjectDetailProps) => {
           {(currentProject.additionalImages || []).map((image, index) => (
             <div
               key={index}
-              className="aspect-square overflow-hidden rounded-md"
+              className="aspect-square overflow-hidden rounded-md relative group"
             >
               <img
                 src={image}
                 alt={`${currentProject.title} - Image ${index + 1}`}
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
               />
+              <Button
+                variant="secondary"
+                size="sm"
+                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-red-600 hover:bg-red-700 text-white shadow-md text-xs px-2 py-1 h-auto"
+                onClick={() =>
+                  handlePinterestShare(
+                    image,
+                    `${currentProject.title} - Interior Design Detail`,
+                  )
+                }
+              >
+                <PinterestIcon />
+                Save
+              </Button>
             </div>
           ))}
         </div>
@@ -237,13 +305,27 @@ const ProjectDetail = ({ project, onBack }: ProjectDetailProps) => {
             {(currentProject.additionalImages || []).map((image, index) => (
               <div
                 key={index}
-                className="aspect-square overflow-hidden rounded-md"
+                className="aspect-square overflow-hidden rounded-md relative group"
               >
                 <img
                   src={image}
                   alt={`${currentProject.title} - Image ${index + 1}`}
                   className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                 />
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-red-600 hover:bg-red-700 text-white shadow-md text-xs px-2 py-1 h-auto"
+                  onClick={() =>
+                    handlePinterestShare(
+                      image,
+                      `${currentProject.title} - Interior Design Gallery`,
+                    )
+                  }
+                >
+                  <PinterestIcon />
+                  Save
+                </Button>
               </div>
             ))}
           </div>

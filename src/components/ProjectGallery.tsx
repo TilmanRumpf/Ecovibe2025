@@ -128,10 +128,9 @@ const ProjectGallery = ({ projects: propProjects }: ProjectGalleryProps) => {
   ];
 
   // Use projects from context/props or fallback to default projects
-  const displayProjects =
-    (propProjects || contextProjects).length > 0
-      ? propProjects || contextProjects
-      : defaultProjects;
+  const displayProjects = hasRealProjects
+    ? propProjects || contextProjects
+    : defaultProjects;
 
   // Create combined filters from categories and project types
   const categoryValues = categories.map((cat) => cat.value);
@@ -161,12 +160,8 @@ const ProjectGallery = ({ projects: propProjects }: ProjectGalleryProps) => {
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8">
-          Our Projects
-        </h2>
-
         {/* Category and Project Type filters */}
-        <div className="flex flex-wrap justify-center gap-2 mb-6 sm:mb-8 px-2">
+        <div className="flex flex-wrap justify-center gap-2 mb-4 sm:mb-6 px-2">
           {allFilters.map((filter) => {
             // Get display name from context if available
             const categoryMatch = categories.find(
@@ -197,32 +192,24 @@ const ProjectGallery = ({ projects: propProjects }: ProjectGalleryProps) => {
         </div>
 
         {/* Projects Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {hasRealProjects ? (
-            filteredProjects.map((project) => (
-              <ProjectCard 
-                key={project.id} 
-                id={project.id}
-                title={project.title}
-                category={project.category}
-                projectType={project.projectType}
-                description={project.description}
-                thumbnailUrl={project.afterImage1}
-              />
-            ))
-          ) : (
-            <div className="col-span-full text-center py-12">
-              <p className="text-gray-500 text-lg">
-                No projects found. Use the admin panel to add your first project.
-              </p>
-            </div>
-          )}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredProjects.map((project) => (
+            <ProjectCard
+              key={project.id}
+              id={project.id}
+              title={project.title}
+              category={project.category}
+              projectType={project.projectType || project.project_type}
+              description={project.description}
+              thumbnailUrl={project.afterImage1 || project.after_image_1}
+            />
+          ))}
         </div>
 
         {/* Empty state */}
         {filteredProjects.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-lg text-muted-foreground">
+          <div className="text-center py-8">
+            <p className="text-base text-muted-foreground">
               No projects found in this category.
             </p>
           </div>

@@ -13,6 +13,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { X, Plus, Upload, Image as ImageIcon, Star } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { Project } from "@/contexts/ProjectContext";
 import { useProjects } from "@/contexts/ProjectContext";
 import { supabase } from "@/lib/supabase";
@@ -52,35 +53,95 @@ const ProjectForm = ({ project, onSubmit, onCancel }: ProjectFormProps) => {
     additional: useRef<HTMLInputElement>(null),
   };
 
+  const optimizeImage = (
+    file: File,
+    maxWidth: number = 1920,
+    maxHeight: number = 1080,
+    quality: number = 0.8,
+  ): Promise<File> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d")!;
+      const img = new Image();
+
+      img.onload = () => {
+        // Calculate new dimensions while maintaining aspect ratio
+        let { width, height } = img;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width;
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = (width * maxHeight) / height;
+            height = maxHeight;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        // Draw and compress the image
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              const optimizedFile = new File([blob], file.name, {
+                type: "image/jpeg",
+                lastModified: Date.now(),
+              });
+              resolve(optimizedFile);
+            } else {
+              resolve(file); // Fallback to original file
+            }
+          },
+          "image/jpeg",
+          quality,
+        );
+      };
+
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   const handleImageUpload = async (file: File, fieldName: string) => {
     try {
-      const fileExt = file.name.split('.').pop();
+      // Optimize the image before uploading
+      const optimizedFile = await optimizeImage(file);
+
+      const fileExt = "jpg"; // Always use jpg for optimized images
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `projects/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('project-images')
-        .upload(filePath, file);
+        .from("project-images")
+        .upload(filePath, optimizedFile);
 
       if (uploadError) {
-        console.error('Upload error:', uploadError);
+        console.error("Upload error:", uploadError);
         return;
       }
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('project-images')
-        .getPublicUrl(filePath);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("project-images").getPublicUrl(filePath);
 
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        [fieldName]: publicUrl
+        [fieldName]: publicUrl,
       }));
     } catch (error) {
-      console.error('Error uploading image:', error);
+      console.error("Error uploading image:", error);
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fieldName: string) => {
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    fieldName: string,
+  ) => {
     const file = e.target.files?.[0];
     if (file) {
       handleImageUpload(file, fieldName);
@@ -266,7 +327,9 @@ const ProjectForm = ({ project, onSubmit, onCancel }: ProjectFormProps) => {
             <Switch
               id="isHero"
               checked={formData.isHero}
-              onCheckedChange={(checked) => handleInputChange("isHero", checked)}
+              onCheckedChange={(checked) =>
+                handleInputChange("isHero", checked)
+              }
             />
           </div>
         </CardContent>
@@ -327,11 +390,15 @@ const ProjectForm = ({ project, onSubmit, onCancel }: ProjectFormProps) => {
                   id="beforeImage1"
                   type="file"
                   accept="image/*"
-                  onChange={(e) => handleFileChange(e, 'beforeImage1')}
+                  onChange={(e) => handleFileChange(e, "beforeImage1")}
                   required={!project}
                 />
                 {formData.beforeImage1 && (
-                  <img src={formData.beforeImage1} alt="Before preview" className="mt-2 w-32 h-24 object-cover rounded" />
+                  <img
+                    src={formData.beforeImage1}
+                    alt="Before preview"
+                    className="mt-2 w-32 h-24 object-cover rounded"
+                  />
                 )}
               </div>
               <div className="space-y-2">
@@ -340,11 +407,15 @@ const ProjectForm = ({ project, onSubmit, onCancel }: ProjectFormProps) => {
                   id="afterImage1"
                   type="file"
                   accept="image/*"
-                  onChange={(e) => handleFileChange(e, 'afterImage1')}
+                  onChange={(e) => handleFileChange(e, "afterImage1")}
                   required={!project}
                 />
                 {formData.afterImage1 && (
-                  <img src={formData.afterImage1} alt="After preview" className="mt-2 w-32 h-24 object-cover rounded" />
+                  <img
+                    src={formData.afterImage1}
+                    alt="After preview"
+                    className="mt-2 w-32 h-24 object-cover rounded"
+                  />
                 )}
               </div>
             </div>
@@ -362,10 +433,14 @@ const ProjectForm = ({ project, onSubmit, onCancel }: ProjectFormProps) => {
                   id="beforeImage2"
                   type="file"
                   accept="image/*"
-                  onChange={(e) => handleFileChange(e, 'beforeImage2')}
+                  onChange={(e) => handleFileChange(e, "beforeImage2")}
                 />
                 {formData.beforeImage2 && (
-                  <img src={formData.beforeImage2} alt="Before preview 2" className="mt-2 w-32 h-24 object-cover rounded" />
+                  <img
+                    src={formData.beforeImage2}
+                    alt="Before preview 2"
+                    className="mt-2 w-32 h-24 object-cover rounded"
+                  />
                 )}
               </div>
               <div className="space-y-2">
@@ -374,10 +449,14 @@ const ProjectForm = ({ project, onSubmit, onCancel }: ProjectFormProps) => {
                   id="afterImage2"
                   type="file"
                   accept="image/*"
-                  onChange={(e) => handleFileChange(e, 'afterImage2')}
+                  onChange={(e) => handleFileChange(e, "afterImage2")}
                 />
                 {formData.afterImage2 && (
-                  <img src={formData.afterImage2} alt="After preview 2" className="mt-2 w-32 h-24 object-cover rounded" />
+                  <img
+                    src={formData.afterImage2}
+                    alt="After preview 2"
+                    className="mt-2 w-32 h-24 object-cover rounded"
+                  />
                 )}
               </div>
             </div>
@@ -400,32 +479,45 @@ const ProjectForm = ({ project, onSubmit, onCancel }: ProjectFormProps) => {
               onChange={async (e) => {
                 const files = Array.from(e.target.files || []);
                 const uploadPromises = files.map(async (file) => {
-                  const fileExt = file.name.split('.').pop();
-                  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-                  const filePath = `projects/${fileName}`;
+                  try {
+                    // Optimize each additional image
+                    const optimizedFile = await optimizeImage(file);
 
-                  const { error: uploadError } = await supabase.storage
-                    .from('project-images')
-                    .upload(filePath, file);
+                    const fileExt = "jpg"; // Always use jpg for optimized images
+                    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+                    const filePath = `projects/${fileName}`;
 
-                  if (uploadError) {
-                    console.error('Upload error:', uploadError);
+                    const { error: uploadError } = await supabase.storage
+                      .from("project-images")
+                      .upload(filePath, optimizedFile);
+
+                    if (uploadError) {
+                      console.error("Upload error:", uploadError);
+                      return null;
+                    }
+
+                    const {
+                      data: { publicUrl },
+                    } = supabase.storage
+                      .from("project-images")
+                      .getPublicUrl(filePath);
+
+                    return publicUrl;
+                  } catch (error) {
+                    console.error("Error optimizing/uploading image:", error);
                     return null;
                   }
-
-                  const { data: { publicUrl } } = supabase.storage
-                    .from('project-images')
-                    .getPublicUrl(filePath);
-
-                  return publicUrl;
                 });
 
                 const uploadedUrls = await Promise.all(uploadPromises);
-                const validUrls = uploadedUrls.filter(url => url !== null);
-                
-                setFormData(prev => ({
+                const validUrls = uploadedUrls.filter((url) => url !== null);
+
+                setFormData((prev) => ({
                   ...prev,
-                  additionalImages: [...(prev.additionalImages || []), ...validUrls]
+                  additionalImages: [
+                    ...(prev.additionalImages || []),
+                    ...validUrls,
+                  ],
                 }));
               }}
               className="hidden"
@@ -441,13 +533,19 @@ const ProjectForm = ({ project, onSubmit, onCancel }: ProjectFormProps) => {
             </Button>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {formData.additionalImages && formData.additionalImages.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-2">
-                {formData.additionalImages.map((url, index) => (
-                  <img key={index} src={url} alt={`Additional ${index + 1}`} className="w-20 h-16 object-cover rounded" />
-                ))}
-              </div>
-            )}
+            {formData.additionalImages &&
+              formData.additionalImages.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {formData.additionalImages.map((url, index) => (
+                    <img
+                      key={index}
+                      src={url}
+                      alt={`Additional ${index + 1}`}
+                      className="w-20 h-16 object-cover rounded"
+                    />
+                  ))}
+                </div>
+              )}
           </div>
         </CardContent>
       </Card>

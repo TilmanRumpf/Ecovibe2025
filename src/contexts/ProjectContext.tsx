@@ -91,9 +91,12 @@ export const ProjectProvider = ({ children }: ProjectProviderProps) => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load data from Supabase on mount
+  // Load data from Supabase on mount with a slight delay to improve perceived performance
   useEffect(() => {
-    loadInitialData();
+    const timer = setTimeout(() => {
+      loadInitialData();
+    }, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   const loadInitialData = async () => {

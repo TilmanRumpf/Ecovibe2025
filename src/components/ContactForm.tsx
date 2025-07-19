@@ -4,7 +4,7 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { useToast } from "./ui/use-toast";
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin, Instagram } from "lucide-react";
 
 const ContactForm = () => {
   const [formData, setFormData] = useState({
@@ -38,7 +38,11 @@ const ContactForm = () => {
     }, 1000);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -53,7 +57,8 @@ const ContactForm = () => {
           <div>
             <h3 className="text-2xl font-bold mb-4">Get In Touch</h3>
             <p className="text-gray-600 mb-6">
-              Ready to transform your space? Contact us today to schedule a consultation and discuss your project.
+              Ready to transform your space? Contact us today to schedule a
+              consultation and discuss your project.
             </p>
           </div>
 
@@ -62,7 +67,10 @@ const ContactForm = () => {
               <Phone className="h-5 w-5 text-primary" />
               <div>
                 <p className="font-medium">Phone</p>
-                <a href="tel:+13522142078" className="text-gray-600 hover:text-primary">
+                <a
+                  href="tel:+13522142078"
+                  className="text-gray-600 hover:text-primary"
+                >
                   (352) 214-2078
                 </a>
               </div>
@@ -72,7 +80,10 @@ const ContactForm = () => {
               <Mail className="h-5 w-5 text-primary" />
               <div>
                 <p className="font-medium">Email</p>
-                <a href="mailto:Shabnam.Rumpf@ecovibe.com" className="text-gray-600 hover:text-primary">
+                <a
+                  href="mailto:Shabnam.Rumpf@ecovibe.com"
+                  className="text-gray-600 hover:text-primary"
+                >
                   Shabnam.Rumpf@ecovibe.com
                 </a>
               </div>
@@ -85,12 +96,28 @@ const ContactForm = () => {
                 <p className="text-gray-600">Florida & Surrounding Areas</p>
               </div>
             </div>
+
+            <div className="flex items-center gap-3">
+              <Instagram className="h-5 w-5 text-primary" />
+              <div>
+                <p className="font-medium">Follow Us</p>
+                <a
+                  href="https://www.instagram.com/ecovibe.design/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-600 hover:text-primary transition-colors"
+                >
+                  @ecovibe.design
+                </a>
+              </div>
+            </div>
           </div>
 
           <div className="bg-gray-50 p-6 rounded-lg">
             <h4 className="font-semibold mb-2">Free Consultation</h4>
             <p className="text-sm text-gray-600">
-              Schedule a complimentary consultation to discuss your project goals, timeline, and budget.
+              Schedule a complimentary consultation to discuss your project
+              goals, timeline, and budget.
             </p>
           </div>
         </div>
@@ -104,7 +131,10 @@ const ContactForm = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium mb-1">
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium mb-1"
+                  >
                     Name *
                   </label>
                   <Input
@@ -117,7 +147,10 @@ const ContactForm = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium mb-1">
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium mb-1"
+                  >
                     Email *
                   </label>
                   <Input
@@ -134,7 +167,10 @@ const ContactForm = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium mb-1">
+                  <label
+                    htmlFor="phone"
+                    className="block text-sm font-medium mb-1"
+                  >
                     Phone
                   </label>
                   <Input
@@ -147,7 +183,10 @@ const ContactForm = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="projectType" className="block text-sm font-medium mb-1">
+                  <label
+                    htmlFor="projectType"
+                    className="block text-sm font-medium mb-1"
+                  >
                     Project Type
                   </label>
                   <select
@@ -171,7 +210,10 @@ const ContactForm = () => {
               </div>
 
               <div>
-                <label htmlFor="message" className="block text-sm font-medium mb-1">
+                <label
+                  htmlFor="message"
+                  className="block text-sm font-medium mb-1"
+                >
                   Message *
                 </label>
                 <Textarea
