@@ -98,25 +98,15 @@ const ProjectDetail = ({ project, onBack }: ProjectDetailProps) => {
       <div className="mb-6 sm:mb-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
           <BeforeAfterSlider
-            beforeImage={
-              currentProject.beforeImage1 || currentProject.beforeImage
-            }
-            afterImage={currentProject.afterImage1 || currentProject.afterImage}
+            beforeImage={currentProject.beforeImage1}
+            afterImage={currentProject.afterImage1}
             beforeAlt={`${currentProject.title} - Before 1`}
             afterAlt={`${currentProject.title} - After 1`}
             className="rounded-lg"
           />
           <BeforeAfterSlider
-            beforeImage={
-              currentProject.beforeImage2 ||
-              currentProject.beforeImage1 ||
-              currentProject.beforeImage
-            }
-            afterImage={
-              currentProject.afterImage2 ||
-              currentProject.afterImage1 ||
-              currentProject.afterImage
-            }
+            beforeImage={currentProject.beforeImage2 || currentProject.beforeImage1}
+            afterImage={currentProject.afterImage2 || currentProject.afterImage1}
             beforeAlt={`${currentProject.title} - Before 2`}
             afterAlt={`${currentProject.title} - After 2`}
             className="rounded-lg"
@@ -125,7 +115,7 @@ const ProjectDetail = ({ project, onBack }: ProjectDetailProps) => {
 
         {/* Simple Project Images */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-          {currentProject.additionalImages?.map((image, index) => (
+          {(currentProject.additionalImages || []).map((image, index) => (
             <div
               key={index}
               className="aspect-square overflow-hidden rounded-md"
@@ -208,7 +198,7 @@ const ProjectDetail = ({ project, onBack }: ProjectDetailProps) => {
               Materials Used
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              {currentProject.materials.map((material, index) => (
+              {(currentProject.materials || []).map((material, index) => (
                 <div key={index} className="flex items-center gap-3">
                   <Hammer size={16} className="text-primary" />
                   <span>{material}</span>
@@ -244,7 +234,7 @@ const ProjectDetail = ({ project, onBack }: ProjectDetailProps) => {
             Project Gallery
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            {currentProject.additionalImages?.map((image, index) => (
+            {(currentProject.additionalImages || []).map((image, index) => (
               <div
                 key={index}
                 className="aspect-square overflow-hidden rounded-md"

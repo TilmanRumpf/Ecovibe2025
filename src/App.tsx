@@ -46,10 +46,8 @@ function App() {
             </div>
           }
         >
-          {/* Tempo routes - only in development */}
-          {import.meta.env.DEV &&
-            import.meta.env.VITE_TEMPO &&
-            useRoutes(routes)}
+          {/* Tempo routes - only when VITE_TEMPO is enabled */}
+          {import.meta.env.VITE_TEMPO && useRoutes(routes)}
 
           <Routes>
             <Route path="/" element={<Home />} />
@@ -63,6 +61,10 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            
+            {/* Add tempo route protection before catchall */}
+            {import.meta.env.VITE_TEMPO && <Route path="/tempobook/*" />}
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
           <BottomNavBar />

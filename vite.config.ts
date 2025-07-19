@@ -20,8 +20,8 @@ export default defineConfig({
   },
   plugins: [
     react(),
-    // Only include tempo plugin in development
-    ...(process.env.NODE_ENV === "development" ? [tempo()] : []),
+    // Include tempo plugin when VITE_TEMPO is enabled
+    ...(process.env.VITE_TEMPO === "true" ? [tempo()] : []),
   ],
   resolve: {
     preserveSymlinks: true,
@@ -31,7 +31,7 @@ export default defineConfig({
   },
   server: {
     // @ts-ignore
-    allowedHosts: true,
+    allowedHosts: process.env.VITE_TEMPO === "true" ? true : undefined,
   },
   define: {
     // Ensure environment variables are properly defined

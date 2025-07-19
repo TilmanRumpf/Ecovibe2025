@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { X, Plus, Upload, Image as ImageIcon } from "lucide-react";
 import { Project } from "@/contexts/ProjectContext";
 import { useProjects } from "@/contexts/ProjectContext";
+import { supabase } from "@/lib/supabase";
 
 interface ProjectFormProps {
   project?: Project | null;
@@ -48,6 +49,41 @@ const ProjectForm = ({ project, onSubmit, onCancel }: ProjectFormProps) => {
     beforeImage2: useRef<HTMLInputElement>(null),
     afterImage2: useRef<HTMLInputElement>(null),
     additional: useRef<HTMLInputElement>(null),
+  };
+
+  const handleImageUpload = async (file: File, fieldName: string) => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `projects/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('project-images')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        return;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('project-images')
+        .getPublicUrl(filePath);
+
+      setFormData(prev => ({
+        ...prev,
+        [fieldName]: publicUrl
+      }));
+    } catch (error) {
+      console.error('Error uploading image:', error);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fieldName: string) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleImageUpload(file, fieldName);
+    }
   };
 
   useEffect(() => {
@@ -106,52 +142,6 @@ const ProjectForm = ({ project, onSubmit, onCancel }: ProjectFormProps) => {
       ...prev,
       materials: prev.materials.filter(
         (material) => material !== materialToRemove,
-      ),
-    }));
-  };
-
-  // Convert file to base64
-  const convertToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = (error) => reject(error);
-    });
-  };
-
-  // Handle single image upload
-  const handleImageUpload = async (field: string, file: File) => {
-    try {
-      const base64 = await convertToBase64(file);
-      setFormData((prev) => ({ ...prev, [field]: base64 }));
-    } catch (error) {
-      console.error("Error converting image to base64:", error);
-      alert("Error uploading image. Please try again.");
-    }
-  };
-
-  // Handle additional images upload
-  const handleAdditionalImagesUpload = async (files: FileList) => {
-    try {
-      const base64Images = await Promise.all(
-        Array.from(files).map((file) => convertToBase64(file)),
-      );
-      setFormData((prev) => ({
-        ...prev,
-        additionalImages: [...prev.additionalImages, ...base64Images],
-      }));
-    } catch (error) {
-      console.error("Error converting images to base64:", error);
-      alert("Error uploading images. Please try again.");
-    }
-  };
-
-  const handleRemoveImage = (imageToRemove: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      additionalImages: prev.additionalImages.filter(
-        (img) => img !== imageToRemove,
       ),
     }));
   };
@@ -311,90 +301,28 @@ const ProjectForm = ({ project, onSubmit, onCancel }: ProjectFormProps) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="beforeImage1">Before Image 1 *</Label>
-                <div className="space-y-2">
-                  <input
-                    ref={fileInputRefs.beforeImage1}
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleImageUpload("beforeImage1", file);
-                    }}
-                    className="hidden"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => fileInputRefs.beforeImage1.current?.click()}
-                    className="w-full"
-                  >
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload Before Image 1
-                  </Button>
-                </div>
+                <Input
+                  id="beforeImage1"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileChange(e, 'beforeImage1')}
+                  required={!project}
+                />
                 {formData.beforeImage1 && (
-                  <div className="mt-2 relative">
-                    <img
-                      src={formData.beforeImage1}
-                      alt="Before 1 preview"
-                      className="w-full h-32 object-cover rounded"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      onClick={() =>
-                        setFormData((prev) => ({ ...prev, beforeImage1: "" }))
-                      }
-                      className="absolute top-1 right-1 h-6 w-6 p-0"
-                    >
-                      <X size={12} />
-                    </Button>
-                  </div>
+                  <img src={formData.beforeImage1} alt="Before preview" className="mt-2 w-32 h-24 object-cover rounded" />
                 )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="afterImage1">After Image 1 *</Label>
-                <div className="space-y-2">
-                  <input
-                    ref={fileInputRefs.afterImage1}
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleImageUpload("afterImage1", file);
-                    }}
-                    className="hidden"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => fileInputRefs.afterImage1.current?.click()}
-                    className="w-full"
-                  >
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload After Image 1
-                  </Button>
-                </div>
+                <Input
+                  id="afterImage1"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileChange(e, 'afterImage1')}
+                  required={!project}
+                />
                 {formData.afterImage1 && (
-                  <div className="mt-2 relative">
-                    <img
-                      src={formData.afterImage1}
-                      alt="After 1 preview"
-                      className="w-full h-32 object-cover rounded"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      onClick={() =>
-                        setFormData((prev) => ({ ...prev, afterImage1: "" }))
-                      }
-                      className="absolute top-1 right-1 h-6 w-6 p-0"
-                    >
-                      <X size={12} />
-                    </Button>
-                  </div>
+                  <img src={formData.afterImage1} alt="After preview" className="mt-2 w-32 h-24 object-cover rounded" />
                 )}
               </div>
             </div>
@@ -408,90 +336,26 @@ const ProjectForm = ({ project, onSubmit, onCancel }: ProjectFormProps) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="beforeImage2">Before Image 2</Label>
-                <div className="space-y-2">
-                  <input
-                    ref={fileInputRefs.beforeImage2}
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleImageUpload("beforeImage2", file);
-                    }}
-                    className="hidden"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => fileInputRefs.beforeImage2.current?.click()}
-                    className="w-full"
-                  >
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload Before Image 2
-                  </Button>
-                </div>
+                <Input
+                  id="beforeImage2"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileChange(e, 'beforeImage2')}
+                />
                 {formData.beforeImage2 && (
-                  <div className="mt-2 relative">
-                    <img
-                      src={formData.beforeImage2}
-                      alt="Before 2 preview"
-                      className="w-full h-32 object-cover rounded"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      onClick={() =>
-                        setFormData((prev) => ({ ...prev, beforeImage2: "" }))
-                      }
-                      className="absolute top-1 right-1 h-6 w-6 p-0"
-                    >
-                      <X size={12} />
-                    </Button>
-                  </div>
+                  <img src={formData.beforeImage2} alt="Before preview 2" className="mt-2 w-32 h-24 object-cover rounded" />
                 )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="afterImage2">After Image 2</Label>
-                <div className="space-y-2">
-                  <input
-                    ref={fileInputRefs.afterImage2}
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleImageUpload("afterImage2", file);
-                    }}
-                    className="hidden"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => fileInputRefs.afterImage2.current?.click()}
-                    className="w-full"
-                  >
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload After Image 2
-                  </Button>
-                </div>
+                <Input
+                  id="afterImage2"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileChange(e, 'afterImage2')}
+                />
                 {formData.afterImage2 && (
-                  <div className="mt-2 relative">
-                    <img
-                      src={formData.afterImage2}
-                      alt="After 2 preview"
-                      className="w-full h-32 object-cover rounded"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      onClick={() =>
-                        setFormData((prev) => ({ ...prev, afterImage2: "" }))
-                      }
-                      className="absolute top-1 right-1 h-6 w-6 p-0"
-                    >
-                      <X size={12} />
-                    </Button>
-                  </div>
+                  <img src={formData.afterImage2} alt="After preview 2" className="mt-2 w-32 h-24 object-cover rounded" />
                 )}
               </div>
             </div>
@@ -511,13 +375,36 @@ const ProjectForm = ({ project, onSubmit, onCancel }: ProjectFormProps) => {
               type="file"
               accept="image/*"
               multiple
-              onChange={(e) => {
-                const files = e.target.files;
-                if (files && files.length > 0) {
-                  handleAdditionalImagesUpload(files);
-                  // Reset the input so the same files can be selected again if needed
-                  e.target.value = "";
-                }
+              onChange={async (e) => {
+                const files = Array.from(e.target.files || []);
+                const uploadPromises = files.map(async (file) => {
+                  const fileExt = file.name.split('.').pop();
+                  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+                  const filePath = `projects/${fileName}`;
+
+                  const { error: uploadError } = await supabase.storage
+                    .from('project-images')
+                    .upload(filePath, file);
+
+                  if (uploadError) {
+                    console.error('Upload error:', uploadError);
+                    return null;
+                  }
+
+                  const { data: { publicUrl } } = supabase.storage
+                    .from('project-images')
+                    .getPublicUrl(filePath);
+
+                  return publicUrl;
+                });
+
+                const uploadedUrls = await Promise.all(uploadPromises);
+                const validUrls = uploadedUrls.filter(url => url !== null);
+                
+                setFormData(prev => ({
+                  ...prev,
+                  additionalImages: [...(prev.additionalImages || []), ...validUrls]
+                }));
               }}
               className="hidden"
             />
@@ -532,22 +419,13 @@ const ProjectForm = ({ project, onSubmit, onCancel }: ProjectFormProps) => {
             </Button>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {formData.additionalImages.map((image, index) => (
-              <div key={index} className="relative group">
-                <img
-                  src={image}
-                  alt={`Additional ${index + 1}`}
-                  className="w-full h-24 object-cover rounded"
-                />
-                <button
-                  type="button"
-                  onClick={() => handleRemoveImage(image)}
-                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <X size={12} />
-                </button>
+            {formData.additionalImages && formData.additionalImages.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {formData.additionalImages.map((url, index) => (
+                  <img key={index} src={url} alt={`Additional ${index + 1}`} className="w-20 h-16 object-cover rounded" />
+                ))}
               </div>
-            ))}
+            )}
           </div>
         </CardContent>
       </Card>

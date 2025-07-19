@@ -2,6 +2,7 @@ import React from "react";
 import BeforeAfterSlider from "./BeforeAfterSlider";
 import ProjectGallery from "./ProjectGallery";
 import { Button } from "./ui/button";
+import { Instagram } from "lucide-react";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -275,7 +276,7 @@ const Home = () => {
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12 pb-20 md:pb-12">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
               <h4 className="text-lg font-semibold mb-4">Contact Us</h4>
               <address className="text-gray-400 not-italic">
@@ -315,6 +316,18 @@ const Home = () => {
                   </Link>
                 </li>
               </ul>
+            </div>
+            <div>
+              <h4 className="text-lg font-semibold mb-4">Follow Us</h4>
+              <a
+                href="https://www.instagram.com/ecovibe.design/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+              >
+                <Instagram className="h-5 w-5" />
+                @ecovibe.design
+              </a>
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">

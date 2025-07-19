@@ -523,6 +523,47 @@ export const ProjectProvider = ({ children }: ProjectProviderProps) => {
     }
   };
 
+  const fetchProjects = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .order("updated_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching projects:", error);
+        return;
+      }
+
+      console.log("Raw database data:", data);
+
+      // Transform database fields to match component expectations
+      const transformedProjects = data.map((project) => ({
+        id: project.id,
+        title: project.title,
+        description: project.description,
+        category: project.category,
+        projectType: project.project_type,
+        tags: project.tags || [],
+        beforeImage1: project.before_image_1,
+        afterImage1: project.after_image_1,
+        beforeImage2: project.before_image_2,
+        afterImage2: project.after_image_2,
+        additionalImages: project.additional_images || [],
+        duration: project.duration,
+        budget: project.budget,
+        materials: project.materials || [],
+        createdAt: project.created_at,
+        updatedAt: project.updated_at,
+      }));
+
+      console.log("Transformed projects:", transformedProjects);
+      setProjects(transformedProjects);
+    } catch (error) {
+      console.error("Error in fetchProjects:", error);
+    }
+  };
+
   const value = {
     projects,
     categories,
