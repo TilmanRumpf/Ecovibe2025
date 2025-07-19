@@ -207,7 +207,7 @@ const ProjectGallery = ({ projects: propProjects }: ProjectGalleryProps) => {
                 category={project.category}
                 projectType={project.projectType}
                 description={project.description}
-                thumbnailUrl={project.beforeImage1}
+                thumbnailUrl={project.afterImage1}
               />
             ))
           ) : (

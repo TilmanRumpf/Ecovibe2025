@@ -69,6 +69,7 @@ export type Database = {
           description: string
           duration: string | null
           id: string
+          is_hero: boolean | null
           materials: string[] | null
           project_type: string
           tags: string[] | null
@@ -87,6 +88,7 @@ export type Database = {
           description: string
           duration?: string | null
           id?: string
+          is_hero?: boolean | null
           materials?: string[] | null
           project_type: string
           tags?: string[] | null
@@ -105,6 +107,7 @@ export type Database = {
           description?: string
           duration?: string | null
           id?: string
+          is_hero?: boolean | null
           materials?: string[] | null
           project_type?: string
           tags?: string[] | null

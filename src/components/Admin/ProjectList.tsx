@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -17,6 +18,7 @@ import {
   Calendar,
   DollarSign,
   Clock,
+  Star,
 } from "lucide-react";
 import { Project } from "@/contexts/ProjectContext";
 import { useProjects } from "@/contexts/ProjectContext";
@@ -25,9 +27,10 @@ interface ProjectListProps {
   projects: Project[];
   onEdit: (project: Project) => void;
   onDelete: (id: string) => Promise<void>;
+  onToggleHero?: (id: string, isHero: boolean) => Promise<void>;
 }
 
-const ProjectList = ({ projects, onEdit, onDelete }: ProjectListProps) => {
+const ProjectList = ({ projects, onEdit, onDelete, onToggleHero }: ProjectListProps) => {
   const { categories: contextCategories, projectTypes } = useProjects();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
@@ -84,6 +87,12 @@ const ProjectList = ({ projects, onEdit, onDelete }: ProjectListProps) => {
       )
     ) {
       await onDelete(project.id);
+    }
+  };
+
+  const handleHeroToggle = async (projectId: string, currentHeroStatus: boolean) => {
+    if (onToggleHero) {
+      await onToggleHero(projectId, !currentHeroStatus);
     }
   };
 
@@ -155,6 +164,12 @@ const ProjectList = ({ projects, onEdit, onDelete }: ProjectListProps) => {
                         (type) => type.value === project.projectType,
                       )?.label || project.projectType}
                     </Badge>
+                    {project.isHero && (
+                      <Badge variant="default" className="bg-amber-500 hover:bg-amber-600">
+                        <Star size={12} className="mr-1" />
+                        Hero
+                      </Badge>
+                    )}
                     <span className="text-xs text-gray-500">
                       Updated {new Date(project.updatedAt).toLocaleDateString()}
                     </span>
@@ -178,6 +193,17 @@ const ProjectList = ({ projects, onEdit, onDelete }: ProjectListProps) => {
                     <Trash2 size={14} />
                   </Button>
                 </div>
+              </div>
+              
+              {/* Hero Toggle */}
+              <div className="flex items-center gap-2 p-2 bg-amber-50 rounded-lg border border-amber-200">
+                <Star size={16} className="text-amber-600" />
+                <span className="text-sm font-medium text-amber-800">Hero Project</span>
+                <Switch
+                  checked={project.isHero || false}
+                  onCheckedChange={() => handleHeroToggle(project.id, project.isHero || false)}
+                  className="ml-auto"
+                />
               </div>
             </CardHeader>
             <CardContent className="space-y-4">

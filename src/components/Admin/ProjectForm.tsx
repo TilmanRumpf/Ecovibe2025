@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { X, Plus, Upload, Image as ImageIcon } from "lucide-react";
+import { X, Plus, Upload, Image as ImageIcon, Star } from "lucide-react";
 import { Project } from "@/contexts/ProjectContext";
 import { useProjects } from "@/contexts/ProjectContext";
 import { supabase } from "@/lib/supabase";
@@ -39,6 +39,7 @@ const ProjectForm = ({ project, onSubmit, onCancel }: ProjectFormProps) => {
     duration: "",
     budget: "",
     materials: [] as string[],
+    isHero: false,
   });
 
   const [newTag, setNewTag] = useState("");
@@ -102,11 +103,12 @@ const ProjectForm = ({ project, onSubmit, onCancel }: ProjectFormProps) => {
         duration: project.duration,
         budget: project.budget,
         materials: project.materials,
+        isHero: project.isHero,
       });
     }
   }, [project]);
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -245,6 +247,26 @@ const ProjectForm = ({ project, onSubmit, onCancel }: ProjectFormProps) => {
               value={formData.budget}
               onChange={(e) => handleInputChange("budget", e.target.value)}
               placeholder="e.g., $45,000 - $65,000"
+            />
+          </div>
+
+          {/* Hero Project Toggle */}
+          <div className="flex items-center justify-between p-4 border rounded-lg bg-amber-50 border-amber-200">
+            <div className="flex items-center gap-3">
+              <Star className="text-amber-600" size={20} />
+              <div>
+                <Label htmlFor="isHero" className="text-base font-medium">
+                  Hero Project
+                </Label>
+                <p className="text-sm text-gray-600 mt-1">
+                  Display this project prominently on the homepage
+                </p>
+              </div>
+            </div>
+            <Switch
+              id="isHero"
+              checked={formData.isHero}
+              onCheckedChange={(checked) => handleInputChange("isHero", checked)}
             />
           </div>
         </CardContent>

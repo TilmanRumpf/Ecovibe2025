@@ -26,22 +26,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already authenticated
+    // Don't block the app with auth checking
     const checkAuth = async () => {
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (session?.user) {
-          setIsAuthenticated(true);
-          setUser(session.user);
-        }
+        const { data: { session } } = await supabase.auth.getSession();
+        setIsAuthenticated(!!session);
+        setUser(session?.user || null);
       } catch (error) {
-        console.error("Error checking auth status:", error);
+        console.error('Auth check failed:', error);
+        setIsAuthenticated(false);
+        setUser(null);
       } finally {
         setLoading(false);
       }

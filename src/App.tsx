@@ -14,15 +14,9 @@ import routes from "tempo-routes";
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuth();
 
+  // Don't show loading for protected routes - just redirect
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Loading...</p>
-        </div>
-      </div>
-    );
+    return <Navigate to="/shabnamona/login" replace />;
   }
 
   return isAuthenticated ? (
@@ -36,39 +30,29 @@ function App() {
   return (
     <AuthProvider>
       <ProjectProvider>
-        <Suspense
-          fallback={
-            <div className="min-h-screen flex items-center justify-center bg-white">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                <p>Loading EcoVibe Design...</p>
-              </div>
-            </div>
-          }
-        >
-          {/* Tempo routes - only when VITE_TEMPO is enabled */}
-          {import.meta.env.VITE_TEMPO && useRoutes(routes)}
+        {/* Tempo routes - only when VITE_TEMPO is enabled */}
+        {import.meta.env.VITE_TEMPO && useRoutes(routes)}
 
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/project/:id" element={<ProjectDetail />} />
-            <Route path="/shabnamona/login" element={<Login />} />
-            <Route
-              path="/shabnamona"
-              element={
-                <ProtectedRoute>
-                  <Admin />
-                </ProtectedRoute>
-              }
-            />
-            
-            {/* Add tempo route protection before catchall */}
-            {import.meta.env.VITE_TEMPO && <Route path="/tempobook/*" />}
-            
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <BottomNavBar />
-        </Suspense>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/project/:id" element={<ProjectDetail />} />
+          <Route path="/shabnamona/login" element={<Login />} />
+          <Route
+            path="/shabnamona"
+            element={
+              <ProtectedRoute>
+                <Admin />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* Add tempo route protection before catchall */}
+          {import.meta.env.VITE_TEMPO && <Route path="/tempobook/*" />}
+          
+          {/* Redirect any unknown routes to home instead of 404 */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+        <BottomNavBar />
       </ProjectProvider>
     </AuthProvider>
   );

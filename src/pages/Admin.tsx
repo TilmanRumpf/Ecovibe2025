@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/components/ui/use-toast";
 import {
   Plus,
   ArrowLeft,
@@ -16,6 +17,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
 import ProjectForm from "@/components/Admin/ProjectForm";
 import ProjectList from "@/components/Admin/ProjectList";
 import {
@@ -27,6 +29,7 @@ import {
 
 const Admin = () => {
   const { logout, createAdminUser } = useAuth();
+  const { toast } = useToast();
   const {
     projects,
     categories,
@@ -40,6 +43,7 @@ const Admin = () => {
     addProjectType,
     updateProjectType,
     deleteProjectType,
+    setProjects,
   } = useProjects();
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -232,6 +236,38 @@ const Admin = () => {
     }
 
     setIsCreatingUser(false);
+  };
+
+  const handleToggleHero = async (projectId: string, isHero: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .update({ is_hero: isHero })
+        .eq('id', projectId);
+
+      if (error) throw error;
+
+      // Update local state
+      setProjects(prev => 
+        prev.map(project => 
+          project.id === projectId 
+            ? { ...project, isHero }
+            : project
+        )
+      );
+
+      toast({
+        title: "Success",
+        description: `Project ${isHero ? 'marked as hero' : 'removed from hero'}`,
+      });
+    } catch (error) {
+      console.error('Error toggling hero status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update hero status",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -512,6 +548,7 @@ const Admin = () => {
                 projects={projects}
                 onEdit={handleEditProject}
                 onDelete={handleDeleteProject}
+                onToggleHero={handleToggleHero}
               />
             </TabsContent>
 

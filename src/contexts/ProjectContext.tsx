@@ -22,6 +22,7 @@ export interface Project {
   duration: string;
   budget: string;
   materials: string[];
+  isHero: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -185,6 +186,7 @@ export const ProjectProvider = ({ children }: ProjectProviderProps) => {
             duration: project.duration || "",
             budget: project.budget || "",
             materials: project.materials || [],
+            isHero: project.is_hero || false,
             createdAt: project.created_at,
             updatedAt: project.updated_at,
           })),
@@ -225,6 +227,7 @@ export const ProjectProvider = ({ children }: ProjectProviderProps) => {
           duration: projectData.duration || null,
           budget: projectData.budget || null,
           materials: projectData.materials || [],
+          is_hero: projectData.isHero || false,
         })
         .select()
         .single();
@@ -249,6 +252,7 @@ export const ProjectProvider = ({ children }: ProjectProviderProps) => {
         duration: data.duration || "",
         budget: data.budget || "",
         materials: data.materials || [],
+        isHero: data.is_hero || false,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
       };
@@ -283,6 +287,7 @@ export const ProjectProvider = ({ children }: ProjectProviderProps) => {
           duration: projectData.duration || null,
           budget: projectData.budget || null,
           materials: projectData.materials || [],
+          is_hero: projectData.isHero || false,
           updated_at: new Date().toISOString(),
         })
         .eq("id", id)
@@ -309,6 +314,7 @@ export const ProjectProvider = ({ children }: ProjectProviderProps) => {
         duration: data.duration || "",
         budget: data.budget || "",
         materials: data.materials || [],
+        isHero: data.is_hero || false,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
       };
@@ -553,6 +559,7 @@ export const ProjectProvider = ({ children }: ProjectProviderProps) => {
         duration: project.duration,
         budget: project.budget,
         materials: project.materials || [],
+        isHero: project.is_hero || false,
         createdAt: project.created_at,
         updatedAt: project.updated_at,
       }));
