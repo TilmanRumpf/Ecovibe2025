@@ -8,7 +8,6 @@ import NotFound from "./components/NotFound";
 import BottomNavBar from "./components/BottomNavBar";
 import { ProjectProvider } from "./contexts/ProjectContext";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import routes from "tempo-routes";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -47,7 +46,6 @@ function App() {
           />
 
           {/* Add tempo route protection before catchall */}
-          {import.meta.env.VITE_TEMPO && <Route path="/tempobook/*" />}
 
           {/* Redirect any unknown routes to home instead of 404 */}
           <Route path="*" element={<Navigate to="/" replace />} />

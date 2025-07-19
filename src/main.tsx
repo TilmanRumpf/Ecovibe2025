@@ -6,9 +6,6 @@ import { BrowserRouter } from "react-router-dom";
 
 // Only initialize TempoDevtools in development
 if (import.meta.env.DEV) {
-  import("tempo-devtools").then(({ TempoDevtools }) => {
-    TempoDevtools.init();
-  });
 }
 
 const basename = import.meta.env.BASE_URL;
