@@ -76,35 +76,21 @@ interface ProjectContextType {
   ) => Promise<void>;
 }
 
-const ProjectContext = createContext<ProjectContextType>({
-  projects: [],
-  categories: [],
-  projectTypes: [],
-  loading: true,
-  addProject: async () => {},
-  updateProject: async () => {},
-  deleteProject: async () => {},
-  getProject: () => undefined,
-  addCategory: async () => {},
-  updateCategory: async () => {},
-  deleteCategory: async () => {},
-  addProjectType: async () => {},
-  updateProjectType: async () => {},
-  deleteProjectType: async () => {},
-  deleteProjectImage: async () => {},
-});
+const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
-// Change this from const arrow function to regular function declaration
-export function useProjects() {
-  return useContext(ProjectContext);
-}
+export const useProjects = () => {
+  const context = useContext(ProjectContext);
+  if (context === undefined) {
+    throw new Error("useProjects must be used within a ProjectProvider");
+  }
+  return context;
+};
 
 interface ProjectProviderProps {
   children: ReactNode;
 }
 
-// Change this to a regular function declaration and default export
-function ProjectProvider({ children }: ProjectProviderProps) {
+export const ProjectProvider = ({ children }: ProjectProviderProps) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [projectTypes, setProjectTypes] = useState<ProjectType[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -704,8 +690,4 @@ function ProjectProvider({ children }: ProjectProviderProps) {
   return (
     <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>
   );
-}
-
-// Export the provider as both named and default export
-export { ProjectProvider };
-export default ProjectProvider;
+};

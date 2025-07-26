@@ -17,11 +17,11 @@ const ProjectGallery = ({ projects: propProjects }: ProjectGalleryProps) => {
   const defaultProjects: Project[] = [
     {
       id: "1",
-      title: "Modern Kitchen Renovation",
+      title: "Modern Kitchen Transformation",
       category: "kitchen",
       project_type: "residential",
       description:
-        "Complete transformation of a dated kitchen into a sleek, modern space with custom cabinetry and premium appliances.",
+        "Complete transformation of a dated kitchen into a sleek, modern space with custom elements and premium appliances.",
       before_image_1:
         "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&q=80",
       after_image_1:
@@ -36,11 +36,11 @@ const ProjectGallery = ({ projects: propProjects }: ProjectGalleryProps) => {
     },
     {
       id: "2",
-      title: "Luxury Master Bathroom",
+      title: "Luxury Master Bath",
       category: "bathroom",
       project_type: "residential",
       description:
-        "Spa-inspired bathroom renovation featuring natural stone, rainfall shower, and heated floors.",
+        "Spa-inspired bathroom transformation featuring natural stone, rainfall shower, and heated floors.",
       before_image_1:
         "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=80",
       after_image_1:
@@ -59,7 +59,7 @@ const ProjectGallery = ({ projects: propProjects }: ProjectGalleryProps) => {
       category: "living",
       project_type: "residential",
       description:
-        "Open-concept living space redesign with modern furniture, ambient lighting, and artistic elements.",
+        "Open-concept living space transformation with modern furniture, ambient lighting, and artistic elements.",
       before_image_1:
         "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&q=80",
       after_image_1:

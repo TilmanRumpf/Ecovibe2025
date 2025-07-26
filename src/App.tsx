@@ -8,6 +8,19 @@ import NotFound from "./components/NotFound";
 import BottomNavBar from "./components/BottomNavBar";
 import { ProjectProvider } from "./contexts/ProjectContext";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { Toaster } from "@/components/ui/toaster";
+
+// Import tempo routes
+let routes: any[] = [];
+if (import.meta.env.VITE_TEMPO) {
+  try {
+    const tempoRoutes = await import("tempo-routes");
+    routes = tempoRoutes.default || [];
+  } catch (error) {
+    console.warn("Tempo routes not available:", error);
+    routes = [];
+  }
+}
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -51,6 +64,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <BottomNavBar />
+        <Toaster />
       </ProjectProvider>
     </AuthProvider>
   );

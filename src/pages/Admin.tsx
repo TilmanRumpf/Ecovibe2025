@@ -43,7 +43,6 @@ const Admin = () => {
     addProjectType,
     updateProjectType,
     deleteProjectType,
-    setProjects,
   } = useProjects();
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -116,18 +115,43 @@ const Admin = () => {
 
   // Category management functions
   const handleAddCategory = async () => {
-    if (newCategoryValue.trim() && newCategoryLabel.trim()) {
-      try {
-        await addCategory({
-          value: newCategoryValue.trim(),
-          label: newCategoryLabel.trim(),
-        });
-        setNewCategoryValue("");
-        setNewCategoryLabel("");
-      } catch (error) {
-        console.error("Failed to add category:", error);
-        alert("Failed to add category. Please try again.");
-      }
+    console.log("=== handleAddCategory called ===");
+    console.log("newCategoryValue:", newCategoryValue);
+    console.log("newCategoryLabel:", newCategoryLabel);
+
+    // Check if fields are empty
+    if (!newCategoryValue.trim() || !newCategoryLabel.trim()) {
+      toast({
+        title: "Missing Information",
+        description:
+          "Please fill in both Value and Label fields before adding a category.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      console.log("Adding category:", {
+        value: newCategoryValue.trim(),
+        label: newCategoryLabel.trim(),
+      });
+      await addCategory({
+        value: newCategoryValue.trim(),
+        label: newCategoryLabel.trim(),
+      });
+      setNewCategoryValue("");
+      setNewCategoryLabel("");
+      toast({
+        title: "Success",
+        description: "Category added successfully",
+      });
+    } catch (error) {
+      console.error("Failed to add category:", error);
+      toast({
+        title: "Error",
+        description: `Failed to add category: ${error.message || "Please try again."}`,
+        variant: "destructive",
+      });
     }
   };
 
@@ -141,9 +165,17 @@ const Admin = () => {
         setEditingCategory(null);
         setNewCategoryValue("");
         setNewCategoryLabel("");
+        toast({
+          title: "Success",
+          description: "Category updated successfully",
+        });
       } catch (error) {
         console.error("Failed to update category:", error);
-        alert("Failed to update category. Please try again.");
+        toast({
+          title: "Error",
+          description: "Failed to update category. Please try again.",
+          variant: "destructive",
+        });
       }
     }
   };
@@ -162,18 +194,43 @@ const Admin = () => {
 
   // Project type management functions
   const handleAddProjectType = async () => {
-    if (newProjectTypeValue.trim() && newProjectTypeLabel.trim()) {
-      try {
-        await addProjectType({
-          value: newProjectTypeValue.trim(),
-          label: newProjectTypeLabel.trim(),
-        });
-        setNewProjectTypeValue("");
-        setNewProjectTypeLabel("");
-      } catch (error) {
-        console.error("Failed to add project type:", error);
-        alert("Failed to add project type. Please try again.");
-      }
+    console.log("=== handleAddProjectType called ===");
+    console.log("newProjectTypeValue:", newProjectTypeValue);
+    console.log("newProjectTypeLabel:", newProjectTypeLabel);
+
+    // Check if fields are empty
+    if (!newProjectTypeValue.trim() || !newProjectTypeLabel.trim()) {
+      toast({
+        title: "Missing Information",
+        description:
+          "Please fill in both Value and Label fields before adding a project type.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      console.log("Adding project type:", {
+        value: newProjectTypeValue.trim(),
+        label: newProjectTypeLabel.trim(),
+      });
+      await addProjectType({
+        value: newProjectTypeValue.trim(),
+        label: newProjectTypeLabel.trim(),
+      });
+      setNewProjectTypeValue("");
+      setNewProjectTypeLabel("");
+      toast({
+        title: "Success",
+        description: "Project type added successfully",
+      });
+    } catch (error) {
+      console.error("Failed to add project type:", error);
+      toast({
+        title: "Error",
+        description: `Failed to add project type: ${error.message || "Please try again."}`,
+        variant: "destructive",
+      });
     }
   };
 
@@ -191,9 +248,17 @@ const Admin = () => {
         setEditingProjectType(null);
         setNewProjectTypeValue("");
         setNewProjectTypeLabel("");
+        toast({
+          title: "Success",
+          description: "Project type updated successfully",
+        });
       } catch (error) {
         console.error("Failed to update project type:", error);
-        alert("Failed to update project type. Please try again.");
+        toast({
+          title: "Error",
+          description: "Failed to update project type. Please try again.",
+          variant: "destructive",
+        });
       }
     }
   };
@@ -241,27 +306,33 @@ const Admin = () => {
   const handleToggleHero = async (projectId: string, isHero: boolean) => {
     try {
       const { error } = await supabase
-        .from('projects')
+        .from("projects")
         .update({ is_hero: isHero })
-        .eq('id', projectId);
+        .eq("id", projectId);
 
       if (error) throw error;
 
-      // Update local state
-      setProjects(prev => 
-        prev.map(project => 
-          project.id === projectId 
-            ? { ...project, isHero }
-            : project
-        )
+      // Update the local state immediately to reflect the change
+      const updatedProjects = projects.map((project) =>
+        project.id === projectId ? { ...project, isHero } : project,
       );
+
+      // Since we don't have setProjects from context, we'll trigger a re-fetch
+      // by calling updateProject with the current project data
+      const projectToUpdate = projects.find((p) => p.id === projectId);
+      if (projectToUpdate) {
+        await updateProject(projectId, {
+          ...projectToUpdate,
+          isHero,
+        });
+      }
 
       toast({
         title: "Success",
-        description: `Project ${isHero ? 'marked as hero' : 'removed from hero'}`,
+        description: `Project ${isHero ? "marked as hero" : "removed from hero"}`,
       });
     } catch (error) {
-      console.error('Error toggling hero status:', error);
+      console.error("Error toggling hero status:", error);
       toast({
         title: "Error",
         description: "Failed to update hero status",
@@ -340,12 +411,14 @@ const Admin = () => {
                 </div>
                 <div className="flex gap-2">
                   <Button
-                    onClick={
-                      editingCategory ? handleUpdateCategory : handleAddCategory
-                    }
-                    disabled={
-                      !newCategoryValue.trim() || !newCategoryLabel.trim()
-                    }
+                    onClick={() => {
+                      console.log("Category button clicked!");
+                      if (editingCategory) {
+                        handleUpdateCategory();
+                      } else {
+                        handleAddCategory();
+                      }
+                    }}
                     size="sm"
                   >
                     {editingCategory ? <Save size={16} /> : <Plus size={16} />}
@@ -387,16 +460,29 @@ const Admin = () => {
                           size="sm"
                           variant="outline"
                           onClick={async () => {
-                            try {
-                              await deleteCategory(category.id);
-                            } catch (error) {
-                              console.error(
-                                "Failed to delete category:",
-                                error,
-                              );
-                              alert(
-                                "Failed to delete category. Please try again.",
-                              );
+                            if (
+                              window.confirm(
+                                `Are you sure you want to delete the category "${category.label}"?`,
+                              )
+                            ) {
+                              try {
+                                await deleteCategory(category.id);
+                                toast({
+                                  title: "Success",
+                                  description: "Category deleted successfully",
+                                });
+                              } catch (error) {
+                                console.error(
+                                  "Failed to delete category:",
+                                  error,
+                                );
+                                toast({
+                                  title: "Error",
+                                  description:
+                                    "Failed to delete category. Please try again.",
+                                  variant: "destructive",
+                                });
+                              }
                             }
                           }}
                           className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
@@ -438,14 +524,14 @@ const Admin = () => {
                 </div>
                 <div className="flex gap-2">
                   <Button
-                    onClick={
-                      editingProjectType
-                        ? handleUpdateProjectType
-                        : handleAddProjectType
-                    }
-                    disabled={
-                      !newProjectTypeValue.trim() || !newProjectTypeLabel.trim()
-                    }
+                    onClick={() => {
+                      console.log("Project type button clicked!");
+                      if (editingProjectType) {
+                        handleUpdateProjectType();
+                      } else {
+                        handleAddProjectType();
+                      }
+                    }}
                     size="sm"
                   >
                     {editingProjectType ? (
@@ -491,16 +577,30 @@ const Admin = () => {
                           size="sm"
                           variant="outline"
                           onClick={async () => {
-                            try {
-                              await deleteProjectType(projectType.id);
-                            } catch (error) {
-                              console.error(
-                                "Failed to delete project type:",
-                                error,
-                              );
-                              alert(
-                                "Failed to delete project type. Please try again.",
-                              );
+                            if (
+                              window.confirm(
+                                `Are you sure you want to delete the project type "${projectType.label}"?`,
+                              )
+                            ) {
+                              try {
+                                await deleteProjectType(projectType.id);
+                                toast({
+                                  title: "Success",
+                                  description:
+                                    "Project type deleted successfully",
+                                });
+                              } catch (error) {
+                                console.error(
+                                  "Failed to delete project type:",
+                                  error,
+                                );
+                                toast({
+                                  title: "Error",
+                                  description:
+                                    "Failed to delete project type. Please try again.",
+                                  variant: "destructive",
+                                });
+                              }
                             }
                           }}
                           className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"

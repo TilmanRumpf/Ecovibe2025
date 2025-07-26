@@ -28,8 +28,13 @@ const ProjectCard = ({
       <Card className="bg-white overflow-hidden hover:shadow-lg transition-all duration-300 group-hover:scale-[1.02]">
         <div className="aspect-video relative overflow-hidden bg-gray-100">
           {!imageLoaded && !imageError && (
-            <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-              <div className="text-gray-400 text-sm">Loading...</div>
+            <div className="absolute inset-0 loading-placeholder">
+              <img
+                src="/logo.png"
+                alt="Loading"
+                className="h-12 w-auto loading-logo"
+                style={{ mixBlendMode: "multiply" }}
+              />
             </div>
           )}
           {!imageError ? (
@@ -37,14 +42,14 @@ const ProjectCard = ({
               src={thumbnailUrl}
               alt={title}
               className={`w-full h-full object-cover transition-all duration-300 group-hover:scale-105 ${
-                imageLoaded ? 'opacity-100' : 'opacity-0'
+                imageLoaded ? "opacity-100" : "opacity-0"
               }`}
               onLoad={() => setImageLoaded(true)}
               onError={() => setImageError(true)}
               loading="lazy"
             />
           ) : (
-            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+            <div className="w-full h-full loading-placeholder">
               <div className="text-gray-400 text-sm">Image unavailable</div>
             </div>
           )}

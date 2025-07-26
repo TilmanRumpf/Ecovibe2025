@@ -21,6 +21,10 @@ const BeforeAfterSlider = ({
   const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(
     null,
   );
+  const [beforeImageLoaded, setBeforeImageLoaded] = useState(false);
+  const [afterImageLoaded, setAfterImageLoaded] = useState(false);
+  const [beforeImageError, setBeforeImageError] = useState(false);
+  const [afterImageError, setAfterImageError] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleMouseDown = (e: React.MouseEvent | React.TouchEvent) => {
@@ -137,11 +141,32 @@ const BeforeAfterSlider = ({
     >
       {/* After image (full width) */}
       <div className="absolute inset-0 w-full h-full">
-        <img
-          src={afterImage}
-          alt={afterAlt}
-          className="w-full h-full object-cover"
-        />
+        {!afterImageLoaded && !afterImageError && (
+          <div className="absolute inset-0 loading-placeholder">
+            <img
+              src="/logo.png"
+              alt="Loading"
+              className="h-16 w-auto loading-logo"
+              style={{ mixBlendMode: "multiply" }}
+            />
+          </div>
+        )}
+        {!afterImageError ? (
+          <img
+            src={afterImage}
+            alt={afterAlt}
+            className={`w-full h-full object-cover transition-opacity duration-300 ${
+              afterImageLoaded ? "opacity-100" : "opacity-0"
+            }`}
+            onLoad={() => setAfterImageLoaded(true)}
+            onError={() => setAfterImageError(true)}
+            loading="lazy"
+          />
+        ) : (
+          <div className="w-full h-full loading-placeholder">
+            <div className="text-gray-400 text-sm">After image unavailable</div>
+          </div>
+        )}
       </div>
 
       {/* Before image (clipped) */}
@@ -149,11 +174,34 @@ const BeforeAfterSlider = ({
         className="absolute inset-0 h-full overflow-hidden"
         style={{ width: `${sliderPosition}%` }}
       >
-        <img
-          src={beforeImage}
-          alt={beforeAlt}
-          className="absolute top-0 left-0 w-full h-full object-cover"
-        />
+        {!beforeImageLoaded && !beforeImageError && (
+          <div className="absolute inset-0 loading-placeholder">
+            <img
+              src="/logo.png"
+              alt="Loading"
+              className="h-16 w-auto loading-logo"
+              style={{ mixBlendMode: "multiply" }}
+            />
+          </div>
+        )}
+        {!beforeImageError ? (
+          <img
+            src={beforeImage}
+            alt={beforeAlt}
+            className={`absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-300 ${
+              beforeImageLoaded ? "opacity-100" : "opacity-0"
+            }`}
+            onLoad={() => setBeforeImageLoaded(true)}
+            onError={() => setBeforeImageError(true)}
+            loading="lazy"
+          />
+        ) : (
+          <div className="absolute top-0 left-0 w-full h-full loading-placeholder">
+            <div className="text-gray-400 text-sm">
+              Before image unavailable
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Slider handle */}

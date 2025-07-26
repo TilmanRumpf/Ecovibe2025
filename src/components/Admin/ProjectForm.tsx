@@ -12,7 +12,14 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { X, Plus, Upload, Image as ImageIcon, Star } from "lucide-react";
+import {
+  X,
+  Plus,
+  Upload,
+  Image as ImageIcon,
+  Star,
+  Trash2,
+} from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Project } from "@/contexts/ProjectContext";
 import { useProjects } from "@/contexts/ProjectContext";
@@ -436,11 +443,20 @@ const ProjectForm = ({ project, onSubmit, onCancel }: ProjectFormProps) => {
                   onChange={(e) => handleFileChange(e, "beforeImage2")}
                 />
                 {formData.beforeImage2 && (
-                  <img
-                    src={formData.beforeImage2}
-                    alt="Before preview 2"
-                    className="mt-2 w-32 h-24 object-cover rounded"
-                  />
+                  <div className="relative group mt-2">
+                    <img
+                      src={formData.beforeImage2}
+                      alt="Before preview 2"
+                      className="w-32 h-24 object-cover rounded"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleInputChange("beforeImage2", "")}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
                 )}
               </div>
               <div className="space-y-2">
@@ -452,11 +468,20 @@ const ProjectForm = ({ project, onSubmit, onCancel }: ProjectFormProps) => {
                   onChange={(e) => handleFileChange(e, "afterImage2")}
                 />
                 {formData.afterImage2 && (
-                  <img
-                    src={formData.afterImage2}
-                    alt="After preview 2"
-                    className="mt-2 w-32 h-24 object-cover rounded"
-                  />
+                  <div className="relative group mt-2">
+                    <img
+                      src={formData.afterImage2}
+                      alt="After preview 2"
+                      className="w-32 h-24 object-cover rounded"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleInputChange("afterImage2", "")}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
@@ -532,17 +557,39 @@ const ProjectForm = ({ project, onSubmit, onCancel }: ProjectFormProps) => {
               Upload Additional Images
             </Button>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="w-full">
             {formData.additionalImages &&
               formData.additionalImages.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-2">
+                <div className="mt-2 flex flex-row flex-nowrap gap-4 overflow-x-auto pb-2">
                   {formData.additionalImages.map((url, index) => (
-                    <img
-                      key={index}
-                      src={url}
-                      alt={`Additional ${index + 1}`}
-                      className="w-20 h-16 object-cover rounded"
-                    />
+                    <div key={index} className="relative">
+                      <img
+                        src={url}
+                        alt={`Additional ${index + 1}`}
+                        className="w-40 h-40 object-cover rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (
+                            window.confirm(
+                              "Are you sure you want to delete this image?",
+                            )
+                          ) {
+                            setFormData((prev) => ({
+                              ...prev,
+                              additionalImages: prev.additionalImages.filter(
+                                (_, i) => i !== index,
+                              ),
+                            }));
+                          }
+                        }}
+                        className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-3 shadow-lg transition-all transform hover:scale-110"
+                        title="Delete image"
+                      >
+                        <Trash2 size={20} />
+                      </button>
+                    </div>
                   ))}
                 </div>
               )}

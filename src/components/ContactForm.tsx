@@ -58,7 +58,7 @@ const ContactForm = () => {
             <h3 className="text-2xl font-bold mb-4">Get In Touch</h3>
             <p className="text-gray-600 mb-6">
               Ready to transform your space? Contact us today to schedule a
-              consultation and discuss your project.
+              consultation and explore your project possibilities.
             </p>
           </div>
 
@@ -197,14 +197,14 @@ const ContactForm = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     <option value="">Select project type</option>
-                    <option value="kitchen">Kitchen Renovation</option>
-                    <option value="bathroom">Bathroom Remodel</option>
-                    <option value="living">Living Room Design</option>
-                    <option value="bedroom">Bedroom Makeover</option>
+                    <option value="kitchen">Kitchen Project</option>
+                    <option value="bathroom">Bathroom Project</option>
+                    <option value="living">Living Space</option>
+                    <option value="bedroom">Bedroom Space</option>
                     <option value="office">Home Office</option>
                     <option value="outdoor">Outdoor Space</option>
-                    <option value="whole-home">Whole Home Design</option>
-                    <option value="commercial">Commercial Project</option>
+                    <option value="whole-home">Whole Home Project</option>
+                    <option value="commercial">Commercial Space</option>
                   </select>
                 </div>
               </div>

@@ -130,7 +130,7 @@ const ProjectDetail = ({ project, onBack }: ProjectDetailProps) => {
               onClick={() =>
                 handlePinterestShare(
                   currentProject.afterImage1,
-                  `${currentProject.title} - Interior Design Transformation`,
+                  `${currentProject.title} - Space Transformation`,
                 )
               }
             >
@@ -157,7 +157,7 @@ const ProjectDetail = ({ project, onBack }: ProjectDetailProps) => {
               onClick={() =>
                 handlePinterestShare(
                   currentProject.afterImage2 || currentProject.afterImage1,
-                  `${currentProject.title} - Interior Design Transformation`,
+                  `${currentProject.title} - Space Transformation`,
                 )
               }
             >
@@ -169,32 +169,60 @@ const ProjectDetail = ({ project, onBack }: ProjectDetailProps) => {
 
         {/* Simple Project Images */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-          {(currentProject.additionalImages || []).map((image, index) => (
-            <div
-              key={index}
-              className="aspect-square overflow-hidden rounded-md relative group"
-            >
-              <img
-                src={image}
-                alt={`${currentProject.title} - Image ${index + 1}`}
-                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-              />
-              <Button
-                variant="secondary"
-                size="sm"
-                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-red-600 hover:bg-red-700 text-white shadow-md text-xs px-2 py-1 h-auto"
-                onClick={() =>
-                  handlePinterestShare(
-                    image,
-                    `${currentProject.title} - Interior Design Detail`,
-                  )
-                }
+          {(currentProject.additionalImages || []).map((image, index) => {
+            const [imageLoaded, setImageLoaded] = useState(false);
+            const [imageError, setImageError] = useState(false);
+
+            return (
+              <div
+                key={index}
+                className="aspect-square overflow-hidden rounded-md relative group"
               >
-                <PinterestIcon />
-                Save
-              </Button>
-            </div>
-          ))}
+                {!imageLoaded && !imageError && (
+                  <div className="absolute inset-0 loading-placeholder">
+                    <img
+                      src="/logo.png"
+                      alt="Loading"
+                      className="h-8 w-auto loading-logo"
+                      style={{ mixBlendMode: "multiply" }}
+                    />
+                  </div>
+                )}
+                {!imageError ? (
+                  <img
+                    src={image}
+                    alt={`${currentProject.title} - Image ${index + 1}`}
+                    className={`w-full h-full object-cover hover:scale-105 transition-all duration-300 ${
+                      imageLoaded ? "opacity-100" : "opacity-0"
+                    }`}
+                    onLoad={() => setImageLoaded(true)}
+                    onError={() => setImageError(true)}
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="w-full h-full loading-placeholder">
+                    <div className="text-gray-400 text-xs">
+                      Image unavailable
+                    </div>
+                  </div>
+                )}
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-red-600 hover:bg-red-700 text-white shadow-md text-xs px-2 py-1 h-auto"
+                  onClick={() =>
+                    handlePinterestShare(
+                      image,
+                      `${currentProject.title} - Project Detail`,
+                    )
+                  }
+                >
+                  <PinterestIcon />
+                  Save
+                </Button>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -284,15 +312,14 @@ const ProjectDetail = ({ project, onBack }: ProjectDetailProps) => {
             <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
               Our approach to this project focused on maximizing space
               efficiency while creating a modern aesthetic that complements the
-              home's architecture. We began with a complete demolition of the
-              existing space, followed by reconfiguring the layout to improve
-              workflow and functionality.
+              home's architecture. We began by reconfiguring the layout to
+              improve workflow and functionality.
             </p>
             <p className="text-gray-700 leading-relaxed mt-3 sm:mt-4 text-sm sm:text-base">
-              Special attention was given to lighting design, incorporating both
-              task and ambient lighting to create a warm, inviting atmosphere.
-              The custom cabinetry was designed to provide ample storage while
-              maintaining clean lines and a minimalist appearance.
+              Special attention was given to lighting solutions, incorporating
+              both task and ambient lighting to create a warm, inviting
+              atmosphere. The custom elements were planned to provide ample
+              storage while maintaining clean lines and a minimalist appearance.
             </p>
           </div>
         </TabsContent>
@@ -302,32 +329,60 @@ const ProjectDetail = ({ project, onBack }: ProjectDetailProps) => {
             Project Gallery
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            {(currentProject.additionalImages || []).map((image, index) => (
-              <div
-                key={index}
-                className="aspect-square overflow-hidden rounded-md relative group"
-              >
-                <img
-                  src={image}
-                  alt={`${currentProject.title} - Image ${index + 1}`}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                />
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-red-600 hover:bg-red-700 text-white shadow-md text-xs px-2 py-1 h-auto"
-                  onClick={() =>
-                    handlePinterestShare(
-                      image,
-                      `${currentProject.title} - Interior Design Gallery`,
-                    )
-                  }
+            {(currentProject.additionalImages || []).map((image, index) => {
+              const [imageLoaded, setImageLoaded] = useState(false);
+              const [imageError, setImageError] = useState(false);
+
+              return (
+                <div
+                  key={index}
+                  className="aspect-square overflow-hidden rounded-md relative group"
                 >
-                  <PinterestIcon />
-                  Save
-                </Button>
-              </div>
-            ))}
+                  {!imageLoaded && !imageError && (
+                    <div className="absolute inset-0 loading-placeholder">
+                      <img
+                        src="/logo.png"
+                        alt="Loading"
+                        className="h-8 w-auto loading-logo"
+                        style={{ mixBlendMode: "multiply" }}
+                      />
+                    </div>
+                  )}
+                  {!imageError ? (
+                    <img
+                      src={image}
+                      alt={`${currentProject.title} - Image ${index + 1}`}
+                      className={`w-full h-full object-cover hover:scale-105 transition-all duration-300 ${
+                        imageLoaded ? "opacity-100" : "opacity-0"
+                      }`}
+                      onLoad={() => setImageLoaded(true)}
+                      onError={() => setImageError(true)}
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-full h-full loading-placeholder">
+                      <div className="text-gray-400 text-xs">
+                        Image unavailable
+                      </div>
+                    </div>
+                  )}
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-red-600 hover:bg-red-700 text-white shadow-md text-xs px-2 py-1 h-auto"
+                    onClick={() =>
+                      handlePinterestShare(
+                        image,
+                        `${currentProject.title} - Project Gallery`,
+                      )
+                    }
+                  >
+                    <PinterestIcon />
+                    Save
+                  </Button>
+                </div>
+              );
+            })}
           </div>
         </TabsContent>
       </Tabs>

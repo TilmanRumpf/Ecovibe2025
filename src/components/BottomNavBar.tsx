@@ -1,22 +1,23 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Home, FolderOpen, User, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const BottomNavBar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const navItems = [
     {
       icon: Home,
       label: "Home",
       href: "/",
-      isActive: location.pathname === "/",
+      isActive: false,
     },
     {
       icon: FolderOpen,
       label: "Projects",
-      href: "#projects",
+      href: "#gallery",
       isActive: false,
     },
     {
@@ -34,7 +35,11 @@ const BottomNavBar = () => {
   ];
 
   const handleNavClick = (href: string) => {
-    if (href.startsWith("#")) {
+    if (href === "/") {
+      // Navigate to home and scroll to top
+      navigate("/");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else if (href.startsWith("#")) {
       // Scroll to section for hash links
       const element = document.querySelector(href);
       if (element) {
@@ -49,7 +54,7 @@ const BottomNavBar = () => {
         {navItems.map((item) => {
           const Icon = item.icon;
 
-          if (item.href.startsWith("#")) {
+          if (item.href.startsWith("#") || item.href === "/") {
             return (
               <button
                 key={item.label}
