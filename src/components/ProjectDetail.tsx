@@ -6,6 +6,7 @@ import { Separator } from "./ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { useParams, useNavigate } from "react-router-dom";
 import BeforeAfterSlider from "./BeforeAfterSlider";
+import ImageSlideshow from "./ImageSlideshow";
 import { useProjects } from "@/contexts/ProjectContext";
 
 interface ProjectDetailProps {
@@ -167,63 +168,16 @@ const ProjectDetail = ({ project, onBack }: ProjectDetailProps) => {
           </div>
         </div>
 
-        {/* Simple Project Images */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-          {(currentProject.additionalImages || []).map((image, index) => {
-            const [imageLoaded, setImageLoaded] = useState(false);
-            const [imageError, setImageError] = useState(false);
-
-            return (
-              <div
-                key={index}
-                className="aspect-square overflow-hidden rounded-md relative group"
-              >
-                {!imageLoaded && !imageError && (
-                  <div className="absolute inset-0 loading-placeholder">
-                    <img
-                      src="/logo.png"
-                      alt="Loading"
-                      className="h-8 w-auto loading-logo"
-                      style={{ mixBlendMode: "multiply" }}
-                    />
-                  </div>
-                )}
-                {!imageError ? (
-                  <img
-                    src={image}
-                    alt={`${currentProject.title} - Image ${index + 1}`}
-                    className={`w-full h-full object-cover hover:scale-105 transition-all duration-300 ${
-                      imageLoaded ? "opacity-100" : "opacity-0"
-                    }`}
-                    onLoad={() => setImageLoaded(true)}
-                    onError={() => setImageError(true)}
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className="w-full h-full loading-placeholder">
-                    <div className="text-gray-400 text-xs">
-                      Image unavailable
-                    </div>
-                  </div>
-                )}
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-red-600 hover:bg-red-700 text-white shadow-md text-xs px-2 py-1 h-auto"
-                  onClick={() =>
-                    handlePinterestShare(
-                      image,
-                      `${currentProject.title} - Project Detail`,
-                    )
-                  }
-                >
-                  <PinterestIcon />
-                  Save
-                </Button>
-              </div>
-            );
-          })}
-        </div>
+        {/* Project Images Slideshow */}
+        {(currentProject.additionalImages || []).length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-4">Project Gallery</h3>
+            <ImageSlideshow
+              images={currentProject.additionalImages || []}
+              className="rounded-lg shadow-lg"
+            />
+          </div>
+        )}
       </div>
 
       <Tabs defaultValue="overview" className="mb-6 sm:mb-10">
@@ -328,62 +282,16 @@ const ProjectDetail = ({ project, onBack }: ProjectDetailProps) => {
           <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4">
             Project Gallery
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            {(currentProject.additionalImages || []).map((image, index) => {
-              const [imageLoaded, setImageLoaded] = useState(false);
-              const [imageError, setImageError] = useState(false);
-
-              return (
-                <div
-                  key={index}
-                  className="aspect-square overflow-hidden rounded-md relative group"
-                >
-                  {!imageLoaded && !imageError && (
-                    <div className="absolute inset-0 loading-placeholder">
-                      <img
-                        src="/logo.png"
-                        alt="Loading"
-                        className="h-8 w-auto loading-logo"
-                        style={{ mixBlendMode: "multiply" }}
-                      />
-                    </div>
-                  )}
-                  {!imageError ? (
-                    <img
-                      src={image}
-                      alt={`${currentProject.title} - Image ${index + 1}`}
-                      className={`w-full h-full object-cover hover:scale-105 transition-all duration-300 ${
-                        imageLoaded ? "opacity-100" : "opacity-0"
-                      }`}
-                      onLoad={() => setImageLoaded(true)}
-                      onError={() => setImageError(true)}
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="w-full h-full loading-placeholder">
-                      <div className="text-gray-400 text-xs">
-                        Image unavailable
-                      </div>
-                    </div>
-                  )}
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-red-600 hover:bg-red-700 text-white shadow-md text-xs px-2 py-1 h-auto"
-                    onClick={() =>
-                      handlePinterestShare(
-                        image,
-                        `${currentProject.title} - Project Gallery`,
-                      )
-                    }
-                  >
-                    <PinterestIcon />
-                    Save
-                  </Button>
-                </div>
-              );
-            })}
-          </div>
+          {(currentProject.additionalImages || []).length > 0 ? (
+            <ImageSlideshow
+              images={currentProject.additionalImages || []}
+              className="rounded-lg shadow-lg"
+            />
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-500">No additional images available</p>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
 

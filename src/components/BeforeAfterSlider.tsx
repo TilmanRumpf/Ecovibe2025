@@ -161,6 +161,8 @@ const BeforeAfterSlider = ({
             onLoad={() => setAfterImageLoaded(true)}
             onError={() => setAfterImageError(true)}
             loading="lazy"
+            decoding="async"
+            sizes="(max-width: 768px) 100vw, 50vw"
           />
         ) : (
           <div className="w-full h-full loading-placeholder">
@@ -194,6 +196,8 @@ const BeforeAfterSlider = ({
             onLoad={() => setBeforeImageLoaded(true)}
             onError={() => setBeforeImageError(true)}
             loading="lazy"
+            decoding="async"
+            sizes="(max-width: 768px) 100vw, 50vw"
           />
         ) : (
           <div className="absolute top-0 left-0 w-full h-full loading-placeholder">

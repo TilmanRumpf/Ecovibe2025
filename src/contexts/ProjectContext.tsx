@@ -127,12 +127,9 @@ function ProjectProvider({ children }: ProjectProviderProps) {
   const [founder, setFounder] = useState<Founder | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load data from Supabase on mount with a slight delay to improve perceived performance
+  // Load data from Supabase on mount
   useEffect(() => {
-    const timer = setTimeout(() => {
-      loadInitialData();
-    }, 100);
-    return () => clearTimeout(timer);
+    loadInitialData();
   }, []);
 
   const loadInitialData = async () => {
@@ -140,36 +137,29 @@ function ProjectProvider({ children }: ProjectProviderProps) {
       setLoading(true);
       console.log("🔄 Loading initial data from Supabase...");
 
-      // Test Supabase connection first
-      const { data: testData, error: testError } = await supabase
-        .from("projects")
-        .select("count", { count: "exact", head: true });
+      // Load all data in parallel for better performance
+      const [
+        categoriesResult,
+        projectTypesResult,
+        founderResult,
+        projectsResult,
+      ] = await Promise.allSettled([
+        supabase.from("categories").select("*").order("label"),
+        supabase.from("project_types").select("*").order("label"),
+        supabase.from("founder").select("*").single(),
+        supabase
+          .from("projects")
+          .select("*")
+          .order("created_at", { ascending: false }),
+      ]);
 
-      if (testError) {
-        console.error("❌ Supabase connection test failed:", testError);
-        console.error("Supabase URL:", import.meta.env.VITE_SUPABASE_URL);
-        console.error(
-          "Supabase Key exists:",
-          !!import.meta.env.VITE_SUPABASE_ANON_KEY,
-        );
-        return;
-      }
-
-      console.log("✅ Supabase connection successful");
-
-      // Load categories
-      console.log("📂 Loading categories...");
-      const { data: categoriesData, error: categoriesError } = await supabase
-        .from("categories")
-        .select("*")
-        .order("label");
-
-      if (categoriesError) {
-        console.error("❌ Error loading categories:", categoriesError);
-      } else {
-        console.log("✅ Categories loaded:", categoriesData?.length || 0);
+      // Process categories
+      if (
+        categoriesResult.status === "fulfilled" &&
+        !categoriesResult.value.error
+      ) {
         setCategories(
-          (categoriesData || []).map((cat) => ({
+          (categoriesResult.value.data || []).map((cat) => ({
             id: cat.id,
             value: cat.value,
             label: cat.label,
@@ -178,17 +168,13 @@ function ProjectProvider({ children }: ProjectProviderProps) {
         );
       }
 
-      // Load project types
-      console.log("🏷️ Loading project types...");
-      const { data: projectTypesData, error: projectTypesError } =
-        await supabase.from("project_types").select("*").order("label");
-
-      if (projectTypesError) {
-        console.error("❌ Error loading project types:", projectTypesError);
-      } else {
-        console.log("✅ Project types loaded:", projectTypesData?.length || 0);
+      // Process project types
+      if (
+        projectTypesResult.status === "fulfilled" &&
+        !projectTypesResult.value.error
+      ) {
         setProjectTypes(
-          (projectTypesData || []).map((type) => ({
+          (projectTypesResult.value.data || []).map((type) => ({
             id: type.id,
             value: type.value,
             label: type.label,
@@ -197,17 +183,9 @@ function ProjectProvider({ children }: ProjectProviderProps) {
         );
       }
 
-      // Load founder
-      console.log("👤 Loading founder...");
-      const { data: founderData, error: founderError } = await supabase
-        .from("founder")
-        .select("*")
-        .single();
-
-      if (founderError) {
-        console.error("❌ Error loading founder:", founderError);
-      } else {
-        console.log("✅ Founder loaded:", founderData);
+      // Process founder
+      if (founderResult.status === "fulfilled" && !founderResult.value.error) {
+        const founderData = founderResult.value.data;
         setFounder({
           id: founderData.id,
           name: founderData.name,
@@ -219,20 +197,13 @@ function ProjectProvider({ children }: ProjectProviderProps) {
         });
       }
 
-      // Load projects
-      console.log("🏠 Loading projects...");
-      const { data: projectsData, error: projectsError } = await supabase
-        .from("projects")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (projectsError) {
-        console.error("❌ Error loading projects:", projectsError);
-      } else {
-        console.log("✅ Projects loaded:", projectsData?.length || 0);
-        console.log("📋 Project data:", projectsData);
+      // Process projects
+      if (
+        projectsResult.status === "fulfilled" &&
+        !projectsResult.value.error
+      ) {
         setProjects(
-          (projectsData || []).map((project) => ({
+          (projectsResult.value.data || []).map((project) => ({
             id: project.id,
             title: project.title,
             description: project.description,

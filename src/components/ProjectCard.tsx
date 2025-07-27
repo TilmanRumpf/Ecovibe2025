@@ -47,6 +47,8 @@ const ProjectCard = ({
               onLoad={() => setImageLoaded(true)}
               onError={() => setImageError(true)}
               loading="lazy"
+              decoding="async"
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
             />
           ) : (
             <div className="w-full h-full loading-placeholder">

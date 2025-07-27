@@ -1,14 +1,15 @@
-import { Suspense } from "react";
+import { Suspense, lazy } from "react";
 import { useRoutes, Routes, Route, Navigate } from "react-router-dom";
 import Home from "./components/home";
-import ProjectDetail from "./components/ProjectDetail";
-import Admin from "./pages/Admin";
-import Login from "./pages/Login";
-import NotFound from "./components/NotFound";
 import BottomNavBar from "./components/BottomNavBar";
 import { ProjectProvider } from "./contexts/ProjectContext";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Toaster } from "@/components/ui/toaster";
+
+// Lazy load components that aren't immediately needed
+const ProjectDetail = lazy(() => import("./components/ProjectDetail"));
+const Admin = lazy(() => import("./pages/Admin"));
+const Login = lazy(() => import("./pages/Login"));
 
 // Import tempo routes
 let routes: any[] = [];
@@ -47,13 +48,68 @@ function App() {
 
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/project/:id" element={<ProjectDetail />} />
-          <Route path="/shabnamona/login" element={<Login />} />
+          <Route
+            path="/project/:id"
+            element={
+              <Suspense
+                fallback={
+                  <div className="flex items-center justify-center min-h-screen">
+                    <div className="loading-placeholder">
+                      <img
+                        src="/logo.png"
+                        alt="Loading"
+                        className="h-16 w-auto loading-logo"
+                        style={{ mixBlendMode: "multiply" }}
+                      />
+                    </div>
+                  </div>
+                }
+              >
+                <ProjectDetail />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/shabnamona/login"
+            element={
+              <Suspense
+                fallback={
+                  <div className="flex items-center justify-center min-h-screen">
+                    <div className="loading-placeholder">
+                      <img
+                        src="/logo.png"
+                        alt="Loading"
+                        className="h-16 w-auto loading-logo"
+                        style={{ mixBlendMode: "multiply" }}
+                      />
+                    </div>
+                  </div>
+                }
+              >
+                <Login />
+              </Suspense>
+            }
+          />
           <Route
             path="/shabnamona"
             element={
               <ProtectedRoute>
-                <Admin />
+                <Suspense
+                  fallback={
+                    <div className="flex items-center justify-center min-h-screen">
+                      <div className="loading-placeholder">
+                        <img
+                          src="/logo.png"
+                          alt="Loading"
+                          className="h-16 w-auto loading-logo"
+                          style={{ mixBlendMode: "multiply" }}
+                        />
+                      </div>
+                    </div>
+                  }
+                >
+                  <Admin />
+                </Suspense>
               </ProtectedRoute>
             }
           />

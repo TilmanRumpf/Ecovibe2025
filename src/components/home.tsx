@@ -34,7 +34,10 @@ const HeroImage = ({ project }: HeroImageProps) => {
             }`}
             onLoad={() => setImageLoaded(true)}
             onError={() => setImageError(true)}
-            loading="lazy"
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
+            sizes="(max-width: 768px) 100vw, 672px"
           />
         ) : (
           <div className="w-full h-48 md:h-64 loading-placeholder">

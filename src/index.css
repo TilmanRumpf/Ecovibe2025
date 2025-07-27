@@ -97,13 +97,8 @@
   }
 }
 
-/* Center toast notifications - More specific selectors */
-[data-sonner-toaster],
-.sonner-toaster,
-[role="region"][aria-label="Notifications"],
-[data-radix-toast-viewport],
-[data-state][data-swipe-direction],
-div:has(> div[data-sonner-toast]) {
+/* Optimized toast positioning */
+[data-radix-toast-viewport] {
   position: fixed !important;
   top: 50% !important;
   left: 50% !important;
@@ -113,26 +108,4 @@ div:has(> div[data-sonner-toast]) {
   margin: 0 !important;
   width: auto !important;
   max-width: 420px !important;
-}
-
-/* Target the actual toast container with higher specificity */
-body > div[data-sonner-toaster],
-body > .sonner-toaster,
-body > [role="region"][aria-label="Notifications"] {
-  position: fixed !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  right: auto !important;
-  bottom: auto !important;
-}
-
-/* Nuclear option - target any fixed positioned element that might be the toast */
-body > div[style*="position: fixed"][style*="right: 0"][style*="bottom: 0"] {
-  position: fixed !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  right: auto !important;
-  bottom: auto !important;
 }

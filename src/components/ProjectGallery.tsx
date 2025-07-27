@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import ProjectCard from "./ProjectCard";
 import { useProjects, Project } from "@/contexts/ProjectContext";
 
@@ -21,26 +21,22 @@ const ProjectGallery = ({ projects: propProjects }: ProjectGalleryProps) => {
     ? propProjects || contextProjects
     : defaultProjects;
 
-  // Create combined filters from categories and project types
-  const categoryValues = categories.map((cat) => cat.value);
-  const projectTypeValues = projectTypes.map((type) => type.value);
-  const allFilters = ["all", ...categoryValues, ...projectTypeValues];
+  // Memoize filters and filtered projects for better performance
+  const allFilters = useMemo(() => {
+    const categoryValues = categories.map((cat) => cat.value);
+    const projectTypeValues = projectTypes.map((type) => type.value);
+    return ["all", ...categoryValues, ...projectTypeValues];
+  }, [categories, projectTypes]);
 
-  // Debug logging
-  console.log("🔍 Display projects:", displayProjects);
-  console.log("Available categories:", categories);
-  console.log("Available project types:", projectTypes);
-  console.log("All filters:", allFilters);
-
-  // Filter projects based on selected category or project type
-  const filteredProjects =
-    selectedCategory === "all"
+  const filteredProjects = useMemo(() => {
+    return selectedCategory === "all"
       ? displayProjects
       : displayProjects.filter(
           (project) =>
             project.category === selectedCategory ||
             project.project_type === selectedCategory,
         );
+  }, [displayProjects, selectedCategory]);
 
   const handleCategoryClick = (category: string) => {
     setSelectedCategory(category);
