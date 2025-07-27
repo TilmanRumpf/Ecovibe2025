@@ -41,10 +41,21 @@ export interface ProjectType {
   createdAt: string;
 }
 
+export interface Founder {
+  id: string;
+  name: string;
+  photoUrl: string;
+  background: string;
+  moreInfo: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface ProjectContextType {
   projects: Project[];
   categories: Category[];
   projectTypes: ProjectType[];
+  founder: Founder | null;
   loading: boolean;
   addProject: (
     project: Omit<Project, "id" | "createdAt" | "updatedAt">,
@@ -74,12 +85,16 @@ interface ProjectContextType {
     imageUrl: string,
     imageType: "additional" | "beforeImage2" | "afterImage2",
   ) => Promise<void>;
+  updateFounder: (
+    founder: Omit<Founder, "id" | "createdAt" | "updatedAt">,
+  ) => Promise<void>;
 }
 
 const ProjectContext = createContext<ProjectContextType>({
   projects: [],
   categories: [],
   projectTypes: [],
+  founder: null,
   loading: true,
   addProject: async () => {},
   updateProject: async () => {},
@@ -92,6 +107,7 @@ const ProjectContext = createContext<ProjectContextType>({
   updateProjectType: async () => {},
   deleteProjectType: async () => {},
   deleteProjectImage: async () => {},
+  updateFounder: async () => {},
 });
 
 // Change this from const arrow function to regular function declaration
@@ -108,6 +124,7 @@ function ProjectProvider({ children }: ProjectProviderProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [projectTypes, setProjectTypes] = useState<ProjectType[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [founder, setFounder] = useState<Founder | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Load data from Supabase on mount with a slight delay to improve perceived performance
@@ -178,6 +195,28 @@ function ProjectProvider({ children }: ProjectProviderProps) {
             createdAt: type.created_at,
           })),
         );
+      }
+
+      // Load founder
+      console.log("👤 Loading founder...");
+      const { data: founderData, error: founderError } = await supabase
+        .from("founder")
+        .select("*")
+        .single();
+
+      if (founderError) {
+        console.error("❌ Error loading founder:", founderError);
+      } else {
+        console.log("✅ Founder loaded:", founderData);
+        setFounder({
+          id: founderData.id,
+          name: founderData.name,
+          photoUrl: founderData.photo_url || "",
+          background: founderData.background || "",
+          moreInfo: founderData.more_info || "",
+          createdAt: founderData.created_at,
+          updatedAt: founderData.updated_at,
+        });
       }
 
       // Load projects
@@ -293,33 +332,54 @@ function ProjectProvider({ children }: ProjectProviderProps) {
   ) => {
     try {
       console.log("🔄 Updating project with materials:", projectData.materials);
-      const { data, error } = await supabase
-        .from("projects")
-        .update({
-          title: projectData.title,
-          description: projectData.description,
-          category: projectData.category,
-          project_type: projectData.projectType,
-          tags: projectData.tags || [],
-          before_image_1: projectData.beforeImage1,
-          after_image_1: projectData.afterImage1,
-          before_image_2: projectData.beforeImage2 || null,
-          after_image_2: projectData.afterImage2 || null,
-          additional_images: projectData.additionalImages || [],
-          duration: projectData.duration || null,
-          budget: projectData.budget || null,
-          materials: projectData.materials || [],
-          is_hero: projectData.isHero || false,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", id)
-        .select()
-        .single();
 
-      if (error) {
-        console.error("Error updating project:", error);
-        throw error;
-      }
+      // Add timeout and retry logic
+      const updateWithRetry = async (retries = 3) => {
+        for (let i = 0; i < retries; i++) {
+          try {
+            const { data, error } = await supabase
+              .from("projects")
+              .update({
+                title: projectData.title,
+                description: projectData.description,
+                category: projectData.category,
+                project_type: projectData.projectType,
+                tags: projectData.tags || [],
+                before_image_1: projectData.beforeImage1,
+                after_image_1: projectData.afterImage1,
+                before_image_2: projectData.beforeImage2 || null,
+                after_image_2: projectData.afterImage2 || null,
+                additional_images: projectData.additionalImages || [],
+                duration: projectData.duration || null,
+                budget: projectData.budget || null,
+                materials: projectData.materials || [],
+                is_hero: projectData.isHero || false,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", id)
+              .select()
+              .single();
+
+            if (error) {
+              if (error.code === "57014" && i < retries - 1) {
+                console.log(`Retry ${i + 1}/${retries} for project update...`);
+                await new Promise((resolve) =>
+                  setTimeout(resolve, 1000 * (i + 1)),
+                );
+                continue;
+              }
+              throw error;
+            }
+            return data;
+          } catch (err) {
+            if (i === retries - 1) throw err;
+            console.log(`Retry ${i + 1}/${retries} for project update...`);
+            await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)));
+          }
+        }
+      };
+
+      const data = await updateWithRetry();
 
       const updatedProject: Project = {
         id: data.id,
@@ -683,10 +743,52 @@ function ProjectProvider({ children }: ProjectProviderProps) {
     }
   };
 
+  const updateFounder = async (
+    founderData: Omit<Founder, "id" | "createdAt" | "updatedAt">,
+  ) => {
+    try {
+      console.log("🔄 Updating founder:", founderData);
+      const { data, error } = await supabase
+        .from("founder")
+        .update({
+          name: founderData.name,
+          photo_url: founderData.photoUrl || null,
+          background: founderData.background || null,
+          more_info: founderData.moreInfo || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", founder?.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error updating founder:", error);
+        throw error;
+      }
+
+      const updatedFounder: Founder = {
+        id: data.id,
+        name: data.name,
+        photoUrl: data.photo_url || "",
+        background: data.background || "",
+        moreInfo: data.more_info || "",
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+      };
+
+      setFounder(updatedFounder);
+      console.log("Founder updated successfully:", updatedFounder);
+    } catch (error) {
+      console.error("Failed to update founder:", error);
+      throw error;
+    }
+  };
+
   const value = {
     projects,
     categories,
     projectTypes,
+    founder,
     loading,
     addProject,
     updateProject,
@@ -699,6 +801,7 @@ function ProjectProvider({ children }: ProjectProviderProps) {
     updateProjectType,
     deleteProjectType,
     deleteProjectImage,
+    updateFounder,
   };
 
   return (

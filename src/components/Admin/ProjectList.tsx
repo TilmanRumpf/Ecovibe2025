@@ -30,7 +30,12 @@ interface ProjectListProps {
   onToggleHero?: (id: string, isHero: boolean) => Promise<void>;
 }
 
-const ProjectList = ({ projects, onEdit, onDelete, onToggleHero }: ProjectListProps) => {
+const ProjectList = ({
+  projects,
+  onEdit,
+  onDelete,
+  onToggleHero,
+}: ProjectListProps) => {
   const { categories: contextCategories, projectTypes } = useProjects();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
@@ -90,9 +95,17 @@ const ProjectList = ({ projects, onEdit, onDelete, onToggleHero }: ProjectListPr
     }
   };
 
-  const handleHeroToggle = async (projectId: string, currentHeroStatus: boolean) => {
+  const handleHeroToggle = async (
+    projectId: string,
+    currentHeroStatus: boolean,
+  ) => {
     if (onToggleHero) {
-      await onToggleHero(projectId, !currentHeroStatus);
+      try {
+        await onToggleHero(projectId, !currentHeroStatus);
+      } catch (error) {
+        console.error("Error in ProjectList hero toggle:", error);
+        // The error handling is done in the parent component
+      }
     }
   };
 
@@ -165,7 +178,10 @@ const ProjectList = ({ projects, onEdit, onDelete, onToggleHero }: ProjectListPr
                       )?.label || project.projectType}
                     </Badge>
                     {project.isHero && (
-                      <Badge variant="default" className="bg-amber-500 hover:bg-amber-600">
+                      <Badge
+                        variant="default"
+                        className="bg-amber-500 hover:bg-amber-600"
+                      >
                         <Star size={12} className="mr-1" />
                         Hero
                       </Badge>
@@ -194,14 +210,18 @@ const ProjectList = ({ projects, onEdit, onDelete, onToggleHero }: ProjectListPr
                   </Button>
                 </div>
               </div>
-              
+
               {/* Hero Toggle */}
               <div className="flex items-center gap-2 p-2 bg-amber-50 rounded-lg border border-amber-200">
                 <Star size={16} className="text-amber-600" />
-                <span className="text-sm font-medium text-amber-800">Hero Project</span>
+                <span className="text-sm font-medium text-amber-800">
+                  Hero Project
+                </span>
                 <Switch
                   checked={project.isHero || false}
-                  onCheckedChange={() => handleHeroToggle(project.id, project.isHero || false)}
+                  onCheckedChange={() =>
+                    handleHeroToggle(project.id, project.isHero || false)
+                  }
                   className="ml-auto"
                 />
               </div>

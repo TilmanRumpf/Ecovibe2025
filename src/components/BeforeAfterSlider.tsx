@@ -10,8 +10,8 @@ interface BeforeAfterSliderProps {
 }
 
 const BeforeAfterSlider = ({
-  beforeImage = "https://images.unsplash.com/photo-1600585152220-90363fe7e115?w=800&q=80",
-  afterImage = "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&q=80",
+  beforeImage = "",
+  afterImage = "",
   beforeAlt = "Before renovation",
   afterAlt = "After renovation",
   className = "",

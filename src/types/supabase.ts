@@ -35,6 +35,36 @@ export type Database = {
         }
         Relationships: []
       }
+      founder: {
+        Row: {
+          background: string | null
+          created_at: string
+          id: string
+          more_info: string | null
+          name: string
+          photo_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          background?: string | null
+          created_at?: string
+          id?: string
+          more_info?: string | null
+          name: string
+          photo_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          background?: string | null
+          created_at?: string
+          id?: string
+          more_info?: string | null
+          name?: string
+          photo_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       project_types: {
         Row: {
           created_at: string | null

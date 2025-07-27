@@ -51,7 +51,7 @@ const HeroImage = ({ project }: HeroImageProps) => {
 };
 
 export default function Home() {
-  const { projects, loading } = useProjects();
+  const { projects, founder, loading } = useProjects();
   const [error, setError] = useState<string | null>(null);
 
   // Show the main content even if database fails
@@ -149,7 +149,7 @@ export default function Home() {
               About EcoVibe
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Sustainable solutions meet modern elegance
+              Designs that Uplift. Spaces that Inspire.
             </p>
           </div>
 
@@ -159,16 +159,12 @@ export default function Home() {
                 Our Philosophy
               </h3>
               <p className="text-gray-600 leading-relaxed">
-                At EcoVibe, we specialize in transforming outdated spaces into
-                modern, functional environments that reflect contemporary
-                living. We focus on creating open, flowing layouts that maximize
-                both space and natural light.
-              </p>
-              <p className="text-gray-600 leading-relaxed">
-                Our approach combines thoughtful design, quality materials, and
-                expert craftsmanship to reimagine your space from the ground up,
-                creating environments that are both stunning and highly
-                functional.
+                We believe that design should uplift the spirit and function
+                with clarity. Our aesthetic is rooted in natural materials,
+                clean lines, and a sense of joy and purpose in every space. We
+                strive to create environments that embody harmony, happiness,
+                and function. Our approach is modern and minimal, yet
+                warm—emphasizing light, comfort, and a connection to nature.
               </p>
             </div>
             <div className="bg-gray-50 rounded-lg p-6">
@@ -178,39 +174,75 @@ export default function Home() {
               <ul className="space-y-3 text-gray-600">
                 <li className="flex items-start">
                   <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                  Complete space redesign and layout optimization
+                  Thoughtful Conceptual Design
                 </li>
                 <li className="flex items-start">
                   <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                  Open floor plan creation and flow enhancement
+                  Inspiring 3D Modeling & Visualization
                 </li>
                 <li className="flex items-start">
                   <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                  Modern kitchen and bathroom renovations
+                  Detailed Construction Drawings
                 </li>
                 <li className="flex items-start">
                   <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                  Office space transformation and productivity enhancement
+                  Permit-Ready Drawing Sets with licensed professionals
                 </li>
                 <li className="flex items-start">
                   <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                  Industrial space modernization and workflow optimization
-                </li>
-                <li className="flex items-start">
-                  <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                  Outdoor space design and entertainment area creation
-                </li>
-                <li className="flex items-start">
-                  <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                  Contemporary lighting and fixture updates
-                </li>
-                <li className="flex items-start">
-                  <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                  Custom storage solutions and built-ins
+                  Optional Project Oversight during construction
                 </li>
               </ul>
             </div>
           </div>
+
+          {/* About the Founder Section */}
+          {founder && (
+            <div className="mt-12 pt-8 border-t border-gray-200">
+              <h3 className="text-3xl md:text-4xl font-light text-gray-900 mb-6 text-center">
+                About the Founder
+              </h3>
+              <div className="flex flex-col md:flex-row gap-6 items-start">
+                {/* Photo and Name */}
+                <div className="flex-shrink-0 text-center">
+                  {founder.photoUrl ? (
+                    <img
+                      src={founder.photoUrl}
+                      alt={founder.name}
+                      className="w-32 h-32 rounded-full object-cover mx-auto mb-3"
+                    />
+                  ) : (
+                    <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center mx-auto mb-3">
+                      <span className="text-gray-400 text-sm">No photo</span>
+                    </div>
+                  )}
+                  <h4 className="text-lg font-medium text-gray-900">
+                    {founder.name}
+                  </h4>
+                </div>
+
+                {/* Background and More Info */}
+                <div className="flex-1 grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h5 className="text-lg font-medium text-gray-900 mb-3">
+                      Background
+                    </h5>
+                    <p className="text-gray-600 leading-relaxed">
+                      {founder.background}
+                    </p>
+                  </div>
+                  <div>
+                    <h5 className="text-lg font-medium text-gray-900 mb-3">
+                      More
+                    </h5>
+                    <p className="text-gray-600 leading-relaxed">
+                      {founder.moreInfo}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -219,7 +251,7 @@ export default function Home() {
         <div className="max-w-4xl mx-auto px-4">
           <div className="text-center mb-8">
             <h2 className="text-3xl md:text-4xl font-light text-gray-900 mb-3">
-              Let's Create Something Beautiful
+              Let's create a space that inspires you every day.
             </h2>
             <p className="text-lg text-gray-600">
               Ready to transform your space? Get in touch for a consultation.
@@ -234,8 +266,7 @@ export default function Home() {
       <footer className="py-6 bg-gray-900">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <p className="text-gray-400 text-sm">
-            © {new Date().getFullYear()} EcoVibe Interior Design. All rights
-            reserved.
+            © {new Date().getFullYear()} EcoVibe, LLC. All rights reserved.
           </p>
         </div>
       </footer>

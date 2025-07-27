@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import {
   Plus,
@@ -25,6 +26,7 @@ import {
   Project,
   Category,
   ProjectType,
+  Founder,
 } from "@/contexts/ProjectContext";
 
 const Admin = () => {
@@ -34,6 +36,7 @@ const Admin = () => {
     projects,
     categories,
     projectTypes,
+    founder,
     addProject,
     updateProject,
     deleteProject,
@@ -43,6 +46,7 @@ const Admin = () => {
     addProjectType,
     updateProjectType,
     deleteProjectType,
+    updateFounder,
   } = useProjects();
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -63,6 +67,15 @@ const Admin = () => {
   const [newUserPassword, setNewUserPassword] = useState("");
   const [isCreatingUser, setIsCreatingUser] = useState(false);
   const [userCreationMessage, setUserCreationMessage] = useState("");
+
+  // Founder management state
+  const [founderData, setFounderData] = useState({
+    name: "",
+    photoUrl: "",
+    background: "",
+    moreInfo: "",
+  });
+  const [isUpdatingFounder, setIsUpdatingFounder] = useState(false);
 
   const handleCreateProject = async (
     projectData: Omit<Project, "id" | "createdAt" | "updatedAt">,
@@ -303,22 +316,177 @@ const Admin = () => {
     setIsCreatingUser(false);
   };
 
+  // Initialize founder data when founder is loaded
+  React.useEffect(() => {
+    if (founder) {
+      setFounderData({
+        name: founder.name,
+        photoUrl: founder.photoUrl,
+        background: founder.background,
+        moreInfo: founder.moreInfo,
+      });
+    }
+  }, [founder]);
+
+  // Founder management functions
+  const handleFounderImageUpload = async (file: File) => {
+    try {
+      // Optimize the image before uploading (reuse logic from ProjectForm)
+      const optimizeImage = (
+        file: File,
+        maxWidth: number = 800,
+        maxHeight: number = 800,
+        quality: number = 0.8,
+      ): Promise<File> => {
+        return new Promise((resolve) => {
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d")!;
+          const img = new Image();
+
+          img.onload = () => {
+            let { width, height } = img;
+
+            if (width > height) {
+              if (width > maxWidth) {
+                height = (height * maxWidth) / width;
+                width = maxWidth;
+              }
+            } else {
+              if (height > maxHeight) {
+                width = (width * maxHeight) / height;
+                height = maxHeight;
+              }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob(
+              (blob) => {
+                if (blob) {
+                  const optimizedFile = new File([blob], file.name, {
+                    type: "image/jpeg",
+                    lastModified: Date.now(),
+                  });
+                  resolve(optimizedFile);
+                } else {
+                  resolve(file);
+                }
+              },
+              "image/jpeg",
+              quality,
+            );
+          };
+
+          img.src = URL.createObjectURL(file);
+        });
+      };
+
+      const optimizedFile = await optimizeImage(file);
+      const fileExt = "jpg";
+      const fileName = `founder-${Date.now()}.${fileExt}`;
+      const filePath = `founder/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("project-images")
+        .upload(filePath, optimizedFile);
+
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
+        toast({
+          title: "Error",
+          description: "Failed to upload image",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("project-images").getPublicUrl(filePath);
+
+      setFounderData((prev) => ({
+        ...prev,
+        photoUrl: publicUrl,
+      }));
+
+      toast({
+        title: "Success",
+        description: "Photo uploaded successfully",
+      });
+    } catch (error) {
+      console.error("Error uploading founder image:", error);
+      toast({
+        title: "Error",
+        description: "Failed to upload image",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUpdateFounder = async () => {
+    if (!founderData.name.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter the founder's name",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUpdatingFounder(true);
+    try {
+      await updateFounder(founderData);
+      toast({
+        title: "Success",
+        description: "Founder information updated successfully",
+      });
+    } catch (error) {
+      console.error("Failed to update founder:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update founder information",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingFounder(false);
+    }
+  };
+
   const handleToggleHero = async (projectId: string, isHero: boolean) => {
     try {
-      const { error } = await supabase
-        .from("projects")
-        .update({ is_hero: isHero })
-        .eq("id", projectId);
+      // Add retry logic for hero toggle
+      const toggleWithRetry = async (retries = 3) => {
+        for (let i = 0; i < retries; i++) {
+          try {
+            const { error } = await supabase
+              .from("projects")
+              .update({ is_hero: isHero })
+              .eq("id", projectId);
 
-      if (error) throw error;
+            if (error) {
+              if (error.code === "57014" && i < retries - 1) {
+                console.log(`Retry ${i + 1}/${retries} for hero toggle...`);
+                await new Promise((resolve) =>
+                  setTimeout(resolve, 1000 * (i + 1)),
+                );
+                continue;
+              }
+              throw error;
+            }
+            return;
+          } catch (err) {
+            if (i === retries - 1) throw err;
+            console.log(`Retry ${i + 1}/${retries} for hero toggle...`);
+            await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)));
+          }
+        }
+      };
 
-      // Update the local state immediately to reflect the change
-      const updatedProjects = projects.map((project) =>
-        project.id === projectId ? { ...project, isHero } : project,
-      );
+      await toggleWithRetry();
 
-      // Since we don't have setProjects from context, we'll trigger a re-fetch
-      // by calling updateProject with the current project data
+      // Update the local state using the context method
       const projectToUpdate = projects.find((p) => p.id === projectId);
       if (projectToUpdate) {
         await updateProject(projectId, {
@@ -335,7 +503,7 @@ const Admin = () => {
       console.error("Error toggling hero status:", error);
       toast({
         title: "Error",
-        description: "Failed to update hero status",
+        description: "Failed to update hero status. Please try again.",
         variant: "destructive",
       });
     }
@@ -639,6 +807,7 @@ const Admin = () => {
               <TabsTrigger value="projects">
                 All Projects ({projects.length})
               </TabsTrigger>
+              <TabsTrigger value="founder">About the Founder</TabsTrigger>
               <TabsTrigger value="users">User Management</TabsTrigger>
               <TabsTrigger value="analytics">Analytics</TabsTrigger>
             </TabsList>
@@ -731,6 +900,109 @@ const Admin = () => {
                       disabled={isCreatingUser}
                     >
                       Fill tilman.rumpf@gmail.com
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="founder">
+              <Card className="bg-white">
+                <CardHeader>
+                  <CardTitle>About the Founder</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="founderName">Name</Label>
+                        <Input
+                          id="founderName"
+                          value={founderData.name}
+                          onChange={(e) =>
+                            setFounderData((prev) => ({
+                              ...prev,
+                              name: e.target.value,
+                            }))
+                          }
+                          placeholder="Enter founder's name"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="founderPhoto">Photo</Label>
+                        <Input
+                          id="founderPhoto"
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              handleFounderImageUpload(file);
+                            }
+                          }}
+                        />
+                        {founderData.photoUrl && (
+                          <div className="mt-2">
+                            <img
+                              src={founderData.photoUrl}
+                              alt="Founder preview"
+                              className="w-24 h-24 rounded-full object-cover"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="founderBackground">Background</Label>
+                        <Textarea
+                          id="founderBackground"
+                          value={founderData.background}
+                          onChange={(e) =>
+                            setFounderData((prev) => ({
+                              ...prev,
+                              background: e.target.value,
+                            }))
+                          }
+                          placeholder="Enter background information"
+                          rows={4}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="founderMore">More</Label>
+                        <Textarea
+                          id="founderMore"
+                          value={founderData.moreInfo}
+                          onChange={(e) =>
+                            setFounderData((prev) => ({
+                              ...prev,
+                              moreInfo: e.target.value,
+                            }))
+                          }
+                          placeholder="Enter additional information"
+                          rows={4}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={handleUpdateFounder}
+                      disabled={isUpdatingFounder || !founderData.name.trim()}
+                      className="flex items-center gap-2"
+                    >
+                      {isUpdatingFounder ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                      ) : (
+                        <Save size={16} />
+                      )}
+                      {isUpdatingFounder
+                        ? "Updating..."
+                        : "Update Founder Info"}
                     </Button>
                   </div>
                 </CardContent>
