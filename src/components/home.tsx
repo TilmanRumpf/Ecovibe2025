@@ -112,7 +112,7 @@ export default function Home() {
             </div>
           )}
 
-          <div className="mt-6">
+          <div className="mt-6 space-x-4">
             <Button
               size="lg"
               className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2 text-base"
@@ -123,6 +123,18 @@ export default function Home() {
               }
             >
               View Portfolio
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white px-6 py-2 text-base"
+              onClick={() =>
+                document
+                  .getElementById("contact")
+                  ?.scrollIntoView({ behavior: "smooth" })
+              }
+            >
+              Book a Consultation
             </Button>
           </div>
         </div>

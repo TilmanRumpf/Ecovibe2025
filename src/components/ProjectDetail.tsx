@@ -299,7 +299,18 @@ const ProjectDetail = ({ project, onBack }: ProjectDetailProps) => {
         <h3 className="text-lg sm:text-xl font-semibold mb-4">
           Interested in a similar transformation?
         </h3>
-        <Button size="lg" className="px-6 sm:px-8 w-full sm:w-auto">
+        <Button
+          size="lg"
+          className="px-6 sm:px-8 w-full sm:w-auto"
+          onClick={() => {
+            navigate("/");
+            setTimeout(() => {
+              document
+                .getElementById("contact")
+                ?.scrollIntoView({ behavior: "smooth" });
+            }, 100);
+          }}
+        >
           Book a Consultation
         </Button>
       </div>
