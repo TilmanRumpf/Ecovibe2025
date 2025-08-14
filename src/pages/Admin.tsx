@@ -37,6 +37,7 @@ const Admin = () => {
     categories,
     projectTypes,
     founder,
+    loading,
     addProject,
     updateProject,
     deleteProject,
@@ -48,6 +49,14 @@ const Admin = () => {
     deleteProjectType,
     updateFounder,
   } = useProjects();
+
+  console.log("🏛️ Admin component render:", {
+    projectsCount: projects.length,
+    categoriesCount: categories.length,
+    projectTypesCount: projectTypes.length,
+    loading,
+    hasFounder: !!founder,
+  });
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [showForm, setShowForm] = useState(false);
 
@@ -813,12 +822,28 @@ const Admin = () => {
             </TabsList>
 
             <TabsContent value="projects">
-              <ProjectList
-                projects={projects}
-                onEdit={handleEditProject}
-                onDelete={handleDeleteProject}
-                onToggleHero={handleToggleHero}
-              />
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <span className="ml-2 text-gray-600">
+                    Loading projects...
+                  </span>
+                </div>
+              ) : (
+                <>
+                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm">
+                    <strong>Debug Info:</strong> Found {projects.length}{" "}
+                    projects, {categories.length} categories,{" "}
+                    {projectTypes.length} project types
+                  </div>
+                  <ProjectList
+                    projects={projects}
+                    onEdit={handleEditProject}
+                    onDelete={handleDeleteProject}
+                    onToggleHero={handleToggleHero}
+                  />
+                </>
+              )}
             </TabsContent>
 
             <TabsContent value="users">

@@ -102,6 +102,7 @@ export type Database = {
           is_hero: boolean | null
           materials: string[] | null
           project_type: string
+          sort_order: number | null
           tags: string[] | null
           title: string
           updated_at: string | null
@@ -121,6 +122,7 @@ export type Database = {
           is_hero?: boolean | null
           materials?: string[] | null
           project_type: string
+          sort_order?: number | null
           tags?: string[] | null
           title: string
           updated_at?: string | null
@@ -140,6 +142,7 @@ export type Database = {
           is_hero?: boolean | null
           materials?: string[] | null
           project_type?: string
+          sort_order?: number | null
           tags?: string[] | null
           title?: string
           updated_at?: string | null

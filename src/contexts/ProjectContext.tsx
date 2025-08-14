@@ -23,6 +23,7 @@ export interface Project {
   budget: string;
   materials: string[];
   isHero: boolean;
+  sortOrder: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -88,6 +89,7 @@ interface ProjectContextType {
   updateFounder: (
     founder: Omit<Founder, "id" | "createdAt" | "updatedAt">,
   ) => Promise<void>;
+  updateProjectOrder: (projectIds: string[]) => Promise<void>;
 }
 
 const ProjectContext = createContext<ProjectContextType>({
@@ -108,6 +110,7 @@ const ProjectContext = createContext<ProjectContextType>({
   deleteProjectType: async () => {},
   deleteProjectImage: async () => {},
   updateFounder: async () => {},
+  updateProjectOrder: async () => {},
 });
 
 // Change this from const arrow function to regular function declaration
@@ -129,15 +132,40 @@ function ProjectProvider({ children }: ProjectProviderProps) {
 
   // Load data from Supabase on mount
   useEffect(() => {
+    console.log("🚀 ProjectContext useEffect triggered - starting data load");
     loadInitialData();
   }, []);
+
+  // Add debugging effect to track projects state changes
+  useEffect(() => {
+    console.log("📊 PROJECTS STATE CHANGED:", {
+      count: projects.length,
+      projects: projects.map((p) => ({
+        id: p.id,
+        title: p.title,
+        category: p.category,
+      })),
+      loading,
+    });
+  }, [projects, loading]);
 
   const loadInitialData = async () => {
     try {
       setLoading(true);
       console.log("🔄 Loading initial data from Supabase...");
+      console.log("🔗 Supabase URL:", import.meta.env.VITE_SUPABASE_URL);
+      console.log("🔑 Has Anon Key:", !!import.meta.env.VITE_SUPABASE_ANON_KEY);
+      console.log("📡 Supabase client:", supabase);
+
+      // Test basic connectivity first
+      console.log("🧪 Testing Supabase connectivity...");
+      const connectivityTest = await supabase
+        .from("projects")
+        .select("count", { count: "exact", head: true });
+      console.log("🧪 Connectivity test result:", connectivityTest);
 
       // Load all data in parallel for better performance
+      console.log("📦 Starting parallel data fetch...");
       const [
         categoriesResult,
         projectTypesResult,
@@ -153,19 +181,30 @@ function ProjectProvider({ children }: ProjectProviderProps) {
           .order("created_at", { ascending: false }),
       ]);
 
+      console.log("📦 All Promise.allSettled results:", {
+        categoriesResult,
+        projectTypesResult,
+        founderResult,
+        projectsResult,
+      });
+
       // Process categories
       if (
         categoriesResult.status === "fulfilled" &&
         !categoriesResult.value.error
       ) {
+        const categoriesData = categoriesResult.value.data || [];
+        console.log("📋 Categories loaded:", categoriesData.length);
         setCategories(
-          (categoriesResult.value.data || []).map((cat) => ({
+          categoriesData.map((cat) => ({
             id: cat.id,
             value: cat.value,
             label: cat.label,
             createdAt: cat.created_at,
           })),
         );
+      } else {
+        console.error("❌ Failed to load categories:", categoriesResult);
       }
 
       // Process project types
@@ -173,19 +212,24 @@ function ProjectProvider({ children }: ProjectProviderProps) {
         projectTypesResult.status === "fulfilled" &&
         !projectTypesResult.value.error
       ) {
+        const projectTypesData = projectTypesResult.value.data || [];
+        console.log("🏗️ Project types loaded:", projectTypesData.length);
         setProjectTypes(
-          (projectTypesResult.value.data || []).map((type) => ({
+          projectTypesData.map((type) => ({
             id: type.id,
             value: type.value,
             label: type.label,
             createdAt: type.created_at,
           })),
         );
+      } else {
+        console.error("❌ Failed to load project types:", projectTypesResult);
       }
 
       // Process founder
       if (founderResult.status === "fulfilled" && !founderResult.value.error) {
         const founderData = founderResult.value.data;
+        console.log("👤 Founder loaded:", founderData?.name);
         setFounder({
           id: founderData.id,
           name: founderData.name,
@@ -195,46 +239,138 @@ function ProjectProvider({ children }: ProjectProviderProps) {
           createdAt: founderData.created_at,
           updatedAt: founderData.updated_at,
         });
+      } else {
+        console.error("❌ Failed to load founder:", founderResult);
       }
 
-      // Process projects
-      if (
-        projectsResult.status === "fulfilled" &&
-        !projectsResult.value.error
-      ) {
-        setProjects(
-          (projectsResult.value.data || []).map((project) => ({
-            id: project.id,
-            title: project.title,
-            description: project.description,
-            category: project.category,
-            projectType: project.project_type,
-            tags: project.tags || [],
-            beforeImage1: project.before_image_1,
-            afterImage1: project.after_image_1,
-            beforeImage2: project.before_image_2 || "",
-            afterImage2: project.after_image_2 || "",
-            additionalImages: project.additional_images || [],
-            duration: project.duration || "",
-            budget: project.budget || "",
-            materials: project.materials || [],
-            isHero: project.is_hero || false,
-            createdAt: project.created_at,
-            updatedAt: project.updated_at,
-          })),
-        );
+      // Process projects - THIS IS THE CRITICAL PART
+      console.log("🎯 PROCESSING PROJECTS RESULT:");
+      console.log("   - Status:", projectsResult.status);
+      console.log("   - Full result:", projectsResult);
+
+      if (projectsResult.status === "fulfilled") {
+        console.log("   - Value:", projectsResult.value);
+        console.log("   - Error:", projectsResult.value.error);
+        console.log("   - Data:", projectsResult.value.data);
+
+        if (!projectsResult.value.error) {
+          const projectsData = projectsResult.value.data || [];
+          console.log(
+            "🎯 RAW PROJECTS FROM DATABASE:",
+            "Count:",
+            projectsData.length,
+            "Data:",
+            projectsData,
+          );
+
+          if (projectsData.length === 0) {
+            console.warn("⚠️ NO PROJECTS FOUND IN DATABASE!");
+            console.log(
+              "🔍 Let's check if the projects table exists and has data...",
+            );
+
+            // Additional debugging query
+            const debugQuery = await supabase.from("projects").select("*");
+            console.log("🔍 Debug query result:", debugQuery);
+          }
+
+          const transformedProjects = projectsData.map((project, index) => {
+            console.log(
+              `🔄 Transforming project ${index + 1}/${projectsData.length}:`,
+              project,
+            );
+            const transformed = {
+              id: project.id,
+              title: project.title,
+              description: project.description,
+              category: project.category,
+              projectType: project.project_type,
+              tags: project.tags || [],
+              beforeImage1: project.before_image_1,
+              afterImage1: project.after_image_1,
+              beforeImage2: project.before_image_2 || "",
+              afterImage2: project.after_image_2 || "",
+              additionalImages: project.additional_images || [],
+              duration: project.duration || "",
+              budget: project.budget || "",
+              materials: project.materials || [],
+              isHero: project.is_hero || false,
+              sortOrder: project.sort_order || 0,
+              createdAt: project.created_at,
+              updatedAt: project.updated_at,
+            };
+            console.log(
+              "   ✅ Transformed:",
+              transformed.title,
+              "ID:",
+              transformed.id,
+              "Category:",
+              transformed.category,
+            );
+            return transformed;
+          });
+
+          console.log(
+            "✅ ABOUT TO SET PROJECTS STATE:",
+            "Count:",
+            transformedProjects.length,
+            "Projects:",
+            transformedProjects.map((p) => ({ id: p.id, title: p.title })),
+          );
+          setProjects(transformedProjects);
+          console.log("✅ setProjects() called successfully");
+        } else {
+          console.error("❌ DATABASE ERROR:", projectsResult.value.error);
+          console.error("   - Code:", projectsResult.value.error.code);
+          console.error("   - Message:", projectsResult.value.error.message);
+          console.error("   - Details:", projectsResult.value.error.details);
+        }
+      } else {
+        console.error("❌ PROMISE REJECTED:", projectsResult);
+        if (projectsResult.status === "rejected") {
+          console.error("   - Reason:", projectsResult.reason);
+        }
       }
     } catch (error) {
-      console.error("💥 Critical error loading initial data:", error);
+      console.error("💥 CRITICAL ERROR loading initial data:", error);
       console.error("Error details:", {
-        message: error.message,
-        stack: error.stack,
+        message: error?.message,
+        stack: error?.stack,
+        name: error?.name,
         supabaseUrl: import.meta.env.VITE_SUPABASE_URL,
         hasAnonKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY,
+        errorType: typeof error,
+        errorConstructor: error?.constructor?.name,
       });
+
+      // Try to provide more specific error information
+      if (error?.message?.includes("fetch")) {
+        console.error("🌐 This appears to be a network/fetch error");
+      }
+      if (error?.message?.includes("CORS")) {
+        console.error("🚫 This appears to be a CORS error");
+      }
+      if (error?.message?.includes("auth")) {
+        console.error("🔐 This appears to be an authentication error");
+      }
     } finally {
+      console.log("🏁 FINALLY BLOCK - setting loading to false");
+      console.log(
+        "   - Current projects count before setLoading(false):",
+        projects.length,
+      );
       setLoading(false);
-      console.log("🏁 Initial data loading completed");
+      console.log("   - Loading set to false");
+
+      // Add a small delay and then log the final state
+      setTimeout(() => {
+        console.log("🏁 FINAL STATE CHECK:", {
+          projectsCount: projects.length,
+          loading: false,
+          categoriesCount: categories.length,
+          projectTypesCount: projectTypes.length,
+        });
+      }, 100);
     }
   };
 
@@ -260,6 +396,7 @@ function ProjectProvider({ children }: ProjectProviderProps) {
           budget: projectData.budget || null,
           materials: projectData.materials || [],
           is_hero: projectData.isHero || false,
+          sort_order: Date.now(),
         })
         .select()
         .single();
@@ -285,6 +422,7 @@ function ProjectProvider({ children }: ProjectProviderProps) {
         budget: data.budget || "",
         materials: data.materials || [],
         isHero: data.is_hero || false,
+        sortOrder: data.sort_order || 0,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
       };
@@ -325,6 +463,7 @@ function ProjectProvider({ children }: ProjectProviderProps) {
                 budget: projectData.budget || null,
                 materials: projectData.materials || [],
                 is_hero: projectData.isHero || false,
+                sort_order: projectData.sortOrder || 0,
                 updated_at: new Date().toISOString(),
               })
               .eq("id", id)
@@ -368,6 +507,7 @@ function ProjectProvider({ children }: ProjectProviderProps) {
         budget: data.budget || "",
         materials: data.materials || [],
         isHero: data.is_hero || false,
+        sortOrder: data.sort_order || 0,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
       };
@@ -629,6 +769,7 @@ function ProjectProvider({ children }: ProjectProviderProps) {
         budget: project.budget,
         materials: project.materials || [],
         isHero: project.is_hero || false,
+        sortOrder: project.sort_order || 0,
         createdAt: project.created_at,
         updatedAt: project.updated_at,
       }));
@@ -755,6 +896,42 @@ function ProjectProvider({ children }: ProjectProviderProps) {
     }
   };
 
+  const updateProjectOrder = async (projectIds: string[]) => {
+    try {
+      console.log("🔄 Updating project order:", projectIds);
+
+      // Update each project with its new sort order
+      const updates = projectIds.map((id, index) => {
+        const sortOrder = Date.now() - index * 1000; // Descending order
+        return supabase
+          .from("projects")
+          .update({ sort_order: sortOrder })
+          .eq("id", id);
+      });
+
+      await Promise.all(updates);
+
+      // Update local state
+      setProjects((prev) => {
+        const reorderedProjects = projectIds
+          .map((id) => prev.find((p) => p.id === id))
+          .filter(Boolean) as Project[];
+
+        // Update sort order in local state
+        reorderedProjects.forEach((project, index) => {
+          project.sortOrder = Date.now() - index * 1000;
+        });
+
+        return reorderedProjects;
+      });
+
+      console.log("✅ Project order updated successfully");
+    } catch (error) {
+      console.error("💥 Failed to update project order:", error);
+      throw error;
+    }
+  };
+
   const value = {
     projects,
     categories,
@@ -773,8 +950,8 @@ function ProjectProvider({ children }: ProjectProviderProps) {
     deleteProjectType,
     deleteProjectImage,
     updateFounder,
+    updateProjectOrder,
   };
-
   return (
     <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>
   );

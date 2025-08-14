@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Link } from "react-router-dom";
+import { Plus } from "lucide-react";
 
 interface ProjectCardProps {
   id: string;
@@ -26,7 +27,7 @@ const ProjectCard = ({
   return (
     <Link to={`/project/${id}`} className="block group">
       <Card className="bg-white overflow-hidden hover:shadow-lg transition-all duration-300 group-hover:scale-[1.02]">
-        <div className="aspect-video relative overflow-hidden bg-gray-100">
+        <div className="aspect-video relative overflow-visible bg-gray-100">
           {!imageLoaded && !imageError && (
             <div className="absolute inset-0 loading-placeholder">
               <img
@@ -55,6 +56,12 @@ const ProjectCard = ({
               <div className="text-gray-400 text-sm">Image unavailable</div>
             </div>
           )}
+          {/* Persistent clickable overlay button - centered at bottom, overlapping 25% */}
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/4 z-10">
+            <div className="w-12 h-12 bg-white hover:bg-gray-50 rounded-full flex items-center justify-center shadow-lg transition-colors duration-200 border border-gray-100">
+              <Plus className="w-5 h-5 text-black" strokeWidth={2} />
+            </div>
+          </div>
         </div>
         <CardContent className="p-4 sm:p-6">
           <div className="flex flex-wrap gap-2 mb-3">

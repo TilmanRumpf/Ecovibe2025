@@ -216,21 +216,25 @@ const ProjectDetail = ({ project, onBack }: ProjectDetailProps) => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            <Card>
-              <CardContent className="p-6 flex flex-col items-center text-center">
-                <Clock className="h-10 w-10 text-primary mb-2" />
-                <h3 className="font-medium mb-1">Duration</h3>
-                <p>{currentProject.duration}</p>
-              </CardContent>
-            </Card>
+            {currentProject.duration && currentProject.duration.trim() && (
+              <Card>
+                <CardContent className="p-6 flex flex-col items-center text-center">
+                  <Clock className="h-10 w-10 text-primary mb-2" />
+                  <h3 className="font-medium mb-1">Duration</h3>
+                  <p>{currentProject.duration}</p>
+                </CardContent>
+              </Card>
+            )}
 
-            <Card>
-              <CardContent className="p-6 flex flex-col items-center text-center">
-                <DollarSign className="h-10 w-10 text-primary mb-2" />
-                <h3 className="font-medium mb-1">Budget Range</h3>
-                <p>{currentProject.budget}</p>
-              </CardContent>
-            </Card>
+            {currentProject.budget && currentProject.budget.trim() && (
+              <Card>
+                <CardContent className="p-6 flex flex-col items-center text-center">
+                  <DollarSign className="h-10 w-10 text-primary mb-2" />
+                  <h3 className="font-medium mb-1">Budget Range</h3>
+                  <p>{currentProject.budget}</p>
+                </CardContent>
+              </Card>
+            )}
 
             <Card>
               <CardContent className="p-6 flex flex-col items-center text-center">
@@ -243,21 +247,25 @@ const ProjectDetail = ({ project, onBack }: ProjectDetailProps) => {
         </TabsContent>
 
         <TabsContent value="details" className="space-y-4 sm:space-y-6">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4">
-              Materials Used
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              {(currentProject.materials || []).map((material, index) => (
-                <div key={index} className="flex items-center gap-3">
-                  <Hammer size={16} className="text-primary" />
-                  <span>{material}</span>
+          {currentProject.materials && currentProject.materials.length > 0 && (
+            <>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4">
+                  Materials Used
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  {currentProject.materials.map((material, index) => (
+                    <div key={index} className="flex items-center gap-3">
+                      <Hammer size={16} className="text-primary" />
+                      <span>{material}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
 
-          <Separator />
+              <Separator />
+            </>
+          )}
 
           <div>
             <h2 className="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4">
