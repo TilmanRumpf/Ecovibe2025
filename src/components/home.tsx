@@ -63,7 +63,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="relative h-[70vh] flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+      <section className="relative min-h-[50vh] max-h-[70vh] xl:max-h-[60vh] 2xl:max-h-[50vh] flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 py-8">
         <div className="text-center px-4 max-w-4xl mx-auto">
           <div className="flex items-center justify-center mb-6">
             <img
@@ -112,7 +112,7 @@ export default function Home() {
             </div>
           )}
 
-          <div className="mt-6 space-x-4">
+          <div className="mt-3 space-x-4">
             <Button
               size="lg"
               className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2 text-base"
@@ -141,9 +141,9 @@ export default function Home() {
       </section>
 
       {/* Portfolio Section */}
-      <section id="gallery" className="pt-6 pb-12 bg-white">
+      <section id="gallery" className="py-6 bg-white">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-8">
+          <div className="text-center mb-6">
             <h2 className="text-3xl md:text-4xl font-light text-gray-900 mb-3">
               Recent Projects
             </h2>
