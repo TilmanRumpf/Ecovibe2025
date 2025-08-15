@@ -27,9 +27,9 @@ const ProjectCard = ({
   return (
     <Link to={`/project/${id}`} className="block group">
       <Card className="bg-white overflow-hidden hover:shadow-lg transition-all duration-300 group-hover:scale-[1.02]">
-        <div className="aspect-video relative overflow-visible bg-gray-100">
+        <div className="aspect-[4/3] relative overflow-visible bg-gray-100">
           {!imageLoaded && !imageError && (
-            <div className="absolute inset-0 loading-placeholder">
+            <div className="absolute inset-0 loading-placeholder flex items-center justify-center">
               <img
                 src="/logo.png"
                 alt="Loading"
@@ -49,10 +49,10 @@ const ProjectCard = ({
               onError={() => setImageError(true)}
               loading="lazy"
               decoding="async"
-              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />
           ) : (
-            <div className="w-full h-full loading-placeholder">
+            <div className="w-full h-full loading-placeholder flex items-center justify-center">
               <div className="text-gray-400 text-sm">Image unavailable</div>
             </div>
           )}

@@ -49,11 +49,21 @@ interface ProjectListProps {
   onToggleHero?: (id: string, isHero: boolean) => Promise<void>;
 }
 
-const DragHandle = ({ isDragMode }: { isDragMode: boolean }) => (
+const DragHandle = ({
+  isDragMode,
+  listeners,
+  attributes,
+}: {
+  isDragMode: boolean;
+  listeners?: any;
+  attributes?: any;
+}) => (
   <div
     className={`p-1 text-gray-400 hover:text-gray-600 ${
       isDragMode ? "cursor-grab active:cursor-grabbing" : "cursor-default"
     }`}
+    {...(isDragMode ? listeners : {})}
+    {...(isDragMode ? attributes : {})}
   >
     <GripVertical size={16} />
   </div>
@@ -152,7 +162,11 @@ const ProjectList = ({
   };
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
@@ -161,26 +175,53 @@ const ProjectList = ({
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (active.id !== over?.id) {
-      const oldIndex = filteredAndSortedProjects.findIndex(
-        (project) => project.id === active.id,
-      );
-      const newIndex = filteredAndSortedProjects.findIndex(
-        (project) => project.id === over?.id,
-      );
+    if (!active || !over || active.id === over.id) {
+      return;
+    }
 
-      if (oldIndex !== -1 && newIndex !== -1) {
-        try {
-          const reorderedProjects = arrayMove(
-            filteredAndSortedProjects,
-            oldIndex,
-            newIndex,
-          );
-          const projectIds = reorderedProjects.map((p) => p.id);
-          await updateProjectOrder(projectIds);
-        } catch (error) {
-          console.error("Error reordering projects:", error);
-        }
+    console.log("🎯 Drag ended:", {
+      activeId: active.id,
+      overId: over.id,
+      isDragMode,
+      sortBy,
+    });
+
+    const oldIndex = filteredAndSortedProjects.findIndex(
+      (project) => project.id === active.id,
+    );
+    const newIndex = filteredAndSortedProjects.findIndex(
+      (project) => project.id === over.id,
+    );
+
+    console.log("📍 Drag indices:", { oldIndex, newIndex });
+
+    if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+      try {
+        // Create the reordered array
+        const reorderedProjects = arrayMove(
+          filteredAndSortedProjects,
+          oldIndex,
+          newIndex,
+        );
+
+        console.log(
+          "🔄 Reordered projects:",
+          reorderedProjects.map((p) => ({ id: p.id, title: p.title })),
+        );
+
+        // Extract the project IDs in the new order
+        const projectIds = reorderedProjects.map((p) => p.id);
+
+        console.log("📋 Updating project order with IDs:", projectIds);
+
+        // Update the order in the database and local state
+        await updateProjectOrder(projectIds);
+
+        console.log("✅ Project order updated successfully");
+      } catch (error) {
+        console.error("❌ Error reordering projects:", error);
+        // Show user-friendly error message
+        alert("Failed to save the new order. Please try again.");
       }
     }
   };
@@ -193,28 +234,38 @@ const ProjectList = ({
       transform,
       transition,
       isDragging,
-    } = useSortable({ id: project.id, disabled: !isDragMode });
+    } = useSortable({
+      id: project.id,
+      disabled: !isDragMode || sortBy !== "userDefined",
+    });
 
     const style = {
       transform: CSS.Transform.toString(transform),
       transition,
       opacity: isDragging ? 0.5 : 1,
+      zIndex: isDragging ? 1000 : 1,
     };
+
+    const canDrag = isDragMode && sortBy === "userDefined";
 
     return (
       <Card
         ref={setNodeRef}
         style={style}
         className={`bg-white hover:shadow-lg transition-shadow ${
-          isDragMode ? "cursor-grab" : ""
-        } ${isDragging ? "z-50" : ""}`}
-        {...attributes}
-        {...(isDragMode ? listeners : {})}
+          isDragging ? "shadow-2xl" : ""
+        }`}
       >
         <CardHeader className="pb-3">
           <div className="flex justify-between items-start">
             <div className="flex items-start gap-2">
-              {isDragMode && <DragHandle isDragMode={isDragMode} />}
+              {isDragMode && sortBy === "userDefined" && (
+                <DragHandle
+                  isDragMode={isDragMode}
+                  listeners={listeners}
+                  attributes={attributes}
+                />
+              )}
               <div className="flex-1">
                 <CardTitle className="text-lg line-clamp-2 mb-2">
                   {project.title}
@@ -249,7 +300,7 @@ const ProjectList = ({
                 variant="outline"
                 onClick={() => onEdit(project)}
                 className="h-8 w-8 p-0"
-                disabled={isDragMode}
+                disabled={canDrag}
               >
                 <Edit size={14} />
               </Button>
@@ -258,7 +309,7 @@ const ProjectList = ({
                 variant="outline"
                 onClick={() => handleDelete(project)}
                 className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                disabled={isDragMode}
+                disabled={canDrag}
               >
                 <Trash2 size={14} />
               </Button>
@@ -277,7 +328,7 @@ const ProjectList = ({
                 handleHeroToggle(project.id, project.isHero || false)
               }
               className="ml-auto"
-              disabled={isDragMode}
+              disabled={canDrag}
             />
           </div>
         </CardHeader>
@@ -408,13 +459,19 @@ const ProjectList = ({
             </Select>
             {sortBy === "userDefined" && (
               <Button
-                onClick={() => setIsDragMode(!isDragMode)}
+                onClick={() => {
+                  console.log("🔄 Toggle drag mode:", {
+                    currentMode: isDragMode,
+                    newMode: !isDragMode,
+                  });
+                  setIsDragMode(!isDragMode);
+                }}
                 variant={isDragMode ? "default" : "outline"}
                 size="sm"
                 className="flex items-center gap-2"
               >
                 <ArrowUpDown size={16} />
-                {isDragMode ? "Save Order" : "Reorder"}
+                {isDragMode ? "Done Reordering" : "Reorder Projects"}
               </Button>
             )}
           </div>
@@ -425,27 +482,20 @@ const ProjectList = ({
       {isDragMode && sortBy === "userDefined" ? (
         <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <p className="text-sm text-blue-700">
-            <strong>Drag Mode Active:</strong> Drag projects to reorder them.
-            Click "Save Order" when done.
+            <strong>🎯 Drag Mode Active:</strong> Drag projects by their cards
+            to reorder them. Changes are saved automatically. Click "Done
+            Reordering" when finished.
           </p>
         </div>
       ) : null}
 
-      {sortBy === "userDefined" ? (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableProjectList projects={filteredAndSortedProjects} />
-        </DndContext>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredAndSortedProjects.map((project) => (
-            <SortableProjectCard key={project.id} project={project} />
-          ))}
-        </div>
-      )}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableProjectList projects={filteredAndSortedProjects} />
+      </DndContext>
 
       {/* Empty State */}
       {filteredAndSortedProjects.length === 0 && (

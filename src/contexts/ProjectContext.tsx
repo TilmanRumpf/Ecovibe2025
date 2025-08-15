@@ -178,7 +178,7 @@ function ProjectProvider({ children }: ProjectProviderProps) {
         supabase
           .from("projects")
           .select("*")
-          .order("created_at", { ascending: false }),
+          .order("sort_order", { ascending: false }),
       ]);
 
       console.log("📦 All Promise.allSettled results:", {
@@ -898,37 +898,106 @@ function ProjectProvider({ children }: ProjectProviderProps) {
 
   const updateProjectOrder = async (projectIds: string[]) => {
     try {
-      console.log("🔄 Updating project order:", projectIds);
+      console.log("🔄 Starting updateProjectOrder with IDs:", projectIds);
 
-      // Update each project with its new sort order
-      const updates = projectIds.map((id, index) => {
-        const sortOrder = Date.now() - index * 1000; // Descending order
-        return supabase
+      if (!projectIds || projectIds.length === 0) {
+        console.warn("⚠️ No project IDs provided to updateProjectOrder");
+        return;
+      }
+
+      // Use a simple incremental approach for sort orders
+      // Higher numbers = higher priority (appear first)
+      const baseOrder = 1000000; // Start with a high base number
+      const updates = [];
+
+      // Prepare all updates first
+      for (let index = 0; index < projectIds.length; index++) {
+        const id = projectIds[index];
+        // First item in array should have highest sort_order (appears first)
+        const sortOrder = baseOrder - index;
+
+        console.log(
+          `   📝 Project ${id} at position ${index} gets sortOrder ${sortOrder}`,
+        );
+
+        updates.push({ id, sortOrder });
+      }
+
+      // Execute all database updates in parallel with error handling
+      const updatePromises = updates.map(async ({ id, sortOrder }) => {
+        const { error } = await supabase
           .from("projects")
-          .update({ sort_order: sortOrder })
+          .update({
+            sort_order: sortOrder,
+            updated_at: new Date().toISOString(),
+          })
           .eq("id", id);
+
+        if (error) {
+          console.error(
+            `❌ Error updating sort order for project ${id}:`,
+            error,
+          );
+          throw new Error(`Failed to update project ${id}: ${error.message}`);
+        }
+
+        return { id, sortOrder };
       });
 
-      await Promise.all(updates);
+      const results = await Promise.all(updatePromises);
+      console.log("✅ All database updates completed:", results);
 
-      // Update local state
-      setProjects((prev) => {
-        const reorderedProjects = projectIds
-          .map((id) => prev.find((p) => p.id === id))
-          .filter(Boolean) as Project[];
+      // Update local state immediately
+      setProjects((prevProjects) => {
+        console.log("🔄 Updating local state with new order");
 
-        // Update sort order in local state
-        reorderedProjects.forEach((project, index) => {
-          project.sortOrder = Date.now() - index * 1000;
+        // Create a map of project ID to new sort order
+        const sortOrderMap = new Map();
+        results.forEach(({ id, sortOrder }) => {
+          sortOrderMap.set(id, sortOrder);
         });
 
-        return reorderedProjects;
+        console.log("   🗺️ Sort order map:", Object.fromEntries(sortOrderMap));
+
+        // Update projects with new sort orders
+        const updatedProjects = prevProjects.map((project) => {
+          const newSortOrder = sortOrderMap.get(project.id);
+          if (newSortOrder !== undefined) {
+            console.log(
+              `   🔄 Updating ${project.title} sortOrder: ${project.sortOrder} → ${newSortOrder}`,
+            );
+            return {
+              ...project,
+              sortOrder: newSortOrder,
+              updatedAt: new Date().toISOString(),
+            };
+          }
+          return project;
+        });
+
+        // Sort by the new sort order (descending - highest first)
+        const sortedProjects = updatedProjects.sort(
+          (a, b) => b.sortOrder - a.sortOrder,
+        );
+
+        console.log(
+          "✅ Final sorted projects:",
+          sortedProjects.map((p, idx) => ({
+            position: idx,
+            id: p.id,
+            title: p.title,
+            sortOrder: p.sortOrder,
+          })),
+        );
+
+        return sortedProjects;
       });
 
-      console.log("✅ Project order updated successfully");
+      console.log("🎉 Project order updated successfully!");
     } catch (error) {
       console.error("💥 Failed to update project order:", error);
-      throw error;
+      // Re-throw with more specific error message
+      throw new Error(`Failed to save project order: ${error.message}`);
     }
   };
 
