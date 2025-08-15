@@ -4,7 +4,11 @@ import { tempo } from "tempo-devtools/dist/vite";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), tempo()],
+  plugins: [
+    react(), 
+    // Only include tempo plugin in development
+    ...(process.env.NODE_ENV !== 'production' ? [tempo()] : [])
+  ],
   resolve: {
     alias: {
       "@": "/src",

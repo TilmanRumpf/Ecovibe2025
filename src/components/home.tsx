@@ -63,88 +63,90 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="relative min-h-[50vh] max-h-[70vh] xl:max-h-[60vh] 2xl:max-h-[50vh] flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 py-8">
-        <div className="text-center px-4 max-w-4xl mx-auto">
-          <div className="flex items-center justify-center mb-6">
-            <img
-              src="/logo.png"
-              alt="EcoVibe Logo"
-              className="h-16 md:h-20 w-auto mr-4 opacity-80"
-              style={{ mixBlendMode: "multiply" }}
-            />
-            <h1 className="text-4xl md:text-6xl font-light text-gray-900">
-              Transforming Spaces
-            </h1>
-          </div>
-          <p className="text-lg md:text-xl text-gray-600 mb-6 font-light">
-            Creating beautiful, functional spaces that reflect your unique style
-          </p>
-
-          {/* Show hero project if available */}
-          {heroProject && !loading && <HeroImage project={heroProject} />}
-
-          {/* Show loading state */}
-          {loading && (
-            <div className="mt-6 max-w-2xl mx-auto">
-              <div className="loading-placeholder rounded-lg h-48 md:h-64">
-                <img
-                  src="/logo.png"
-                  alt="Loading"
-                  className="h-16 w-auto loading-logo"
-                  style={{ mixBlendMode: "multiply" }}
-                />
-              </div>
-              <p className="text-gray-500 mt-3">Loading projects...</p>
+      <section className="relative bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="container mx-auto px-4 py-16 md:py-20 lg:py-24">
+          <div className="text-center max-w-4xl mx-auto">
+            <div className="flex flex-col sm:flex-row items-center justify-center mb-8">
+              <img
+                src="/logo.png"
+                alt="EcoVibe Logo"
+                className="h-12 md:h-16 w-auto mb-4 sm:mb-0 sm:mr-4 opacity-80"
+                style={{ mixBlendMode: "multiply" }}
+              />
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light text-gray-900">
+                Transforming Spaces
+              </h1>
             </div>
-          )}
+            <p className="text-base md:text-lg lg:text-xl text-gray-600 mb-8 font-light max-w-3xl mx-auto">
+              Creating beautiful, functional spaces that reflect your unique style
+            </p>
 
-          {/* Show error state but don't block the page */}
-          {error && !loading && (
-            <div className="mt-6 max-w-2xl mx-auto">
-              <div className="loading-placeholder rounded-lg h-48 md:h-64">
-                <div className="text-center">
-                  <p className="text-gray-600 mb-3">Portfolio coming soon</p>
-                  <p className="text-sm text-gray-500">
-                    Database connection: {error}
-                  </p>
+            {/* Show hero project if available */}
+            {heroProject && !loading && <HeroImage project={heroProject} />}
+
+            {/* Show loading state */}
+            {loading && (
+              <div className="mt-8 max-w-2xl mx-auto">
+                <div className="loading-placeholder rounded-lg h-48 md:h-64">
+                  <img
+                    src="/logo.png"
+                    alt="Loading"
+                    className="h-16 w-auto loading-logo"
+                    style={{ mixBlendMode: "multiply" }}
+                  />
+                </div>
+                <p className="text-gray-500 mt-4">Loading projects...</p>
+              </div>
+            )}
+
+            {/* Show error state but don't block the page */}
+            {error && !loading && (
+              <div className="mt-8 max-w-2xl mx-auto">
+                <div className="loading-placeholder rounded-lg h-48 md:h-64">
+                  <div className="text-center">
+                    <p className="text-gray-600 mb-3">Portfolio coming soon</p>
+                    <p className="text-sm text-gray-500">
+                      Database connection: {error}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <div className="mt-3 space-x-4">
-            <Button
-              size="lg"
-              className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2 text-base"
-              onClick={() =>
-                document
-                  .getElementById("gallery")
-                  ?.scrollIntoView({ behavior: "smooth" })
-              }
-            >
-              View Portfolio
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white px-6 py-2 text-base"
-              onClick={() =>
-                document
-                  .getElementById("contact")
-                  ?.scrollIntoView({ behavior: "smooth" })
-              }
-            >
-              Book a Consultation
-            </Button>
+            <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                size="lg"
+                className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 text-base font-medium"
+                onClick={() =>
+                  document
+                    .getElementById("gallery")
+                    ?.scrollIntoView({ behavior: "smooth" })
+                }
+              >
+                View Portfolio
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white px-8 py-3 text-base font-medium"
+                onClick={() =>
+                  document
+                    .getElementById("contact")
+                    ?.scrollIntoView({ behavior: "smooth" })
+                }
+              >
+                Book a Consultation
+              </Button>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Portfolio Section */}
-      <section id="gallery" className="py-6 bg-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-6">
-            <h2 className="text-3xl md:text-4xl font-light text-gray-900 mb-3">
+      <section id="gallery" className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-light text-gray-900 mb-4">
               Recent Projects
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
